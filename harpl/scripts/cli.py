@@ -4,7 +4,6 @@ import os
 
 import torch
 import torch.distributed as dist
-import wandb
 from tqdm.auto import tqdm
 from torch.nn.parallel import DistributedDataParallel as DDP
 from harpl.networks.utils import additional_data_process, prepare_model
@@ -14,6 +13,7 @@ from harpl.scripts.utils import (
     get_criterion_input,
     get_data_specs,
     get_rank,
+    init_logger,
     init_distributed,
     prepare_model_optimization,
     seed_everything,
@@ -388,11 +388,7 @@ if __name__ == "__main__":
     if args.distributed:
         init_distributed(args.dist_backend, args.dist_url, args.local_rank, device)
 
-    if args.distributed:
-        if get_rank() == 0 and not args.nolog:
-            wandb.init(project="HARPL", name=args.experiment_name, config=args)
-    elif not args.nolog:
-        wandb.init(project="HARPL", name=args.experiment_name, config=args)
+    init_logger(args)
     
     check_args(args)
     main(args, device)

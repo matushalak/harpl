@@ -31,13 +31,14 @@ and CUDA-only launcher defaults.
 From this directory:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+mamba env create -f environment.yml
+mamba activate harpl
 ```
 
-On Apple Silicon, install a current PyTorch build with MPS support. HARPL will use
-`mps` automatically when available:
+The mamba environment installs HARPL as an editable Python package through
+`pyproject.toml`, including PyTorch and torchvision. On Apple Silicon, the current
+PyTorch wheel includes MPS support and HARPL will use `mps` automatically when
+available:
 
 ```bash
 python -c "import torch; print(torch.backends.mps.is_available())"
@@ -45,13 +46,22 @@ python -c "import torch; print(torch.backends.mps.is_available())"
 
 ## Run
 
-Use `--nolog` to skip Weights & Biases.
+TensorBoard is the default logger. Use `--nolog` to disable experiment logging.
 
 ```bash
 bash bash_scripts/mnist_triplets.sh --nolog --epochs 1 --offline_epochs 1
 bash bash_scripts/moving_animals.sh --nolog --epochs 1 --offline_epochs 1
 bash bash_scripts/hRPL.sh --nolog --epochs 1 --offline_epochs 1
 ```
+
+TensorBoard logs are written under `runs/<experiment_name>/` by default:
+
+```bash
+bash bash_scripts/mnist_triplets.sh --epochs 1 --offline_epochs 1
+tensorboard --logdir runs
+```
+
+Use W&B explicitly with `--logger wandb`.
 
 You can force a device with `--device cpu`, `--device mps`, or `--device cuda`.
 The default is `--device auto`.

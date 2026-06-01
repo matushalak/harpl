@@ -124,7 +124,9 @@ def add_training_args(parser):
 
 
 def add_logging_args(parser):
-    parser.add_argument("--nolog", action="store_true", help="stop log to wandb")
+    parser.add_argument("--nolog", action="store_true", help="disable experiment logging")
+    parser.add_argument("--logger", choices=["tensorboard", "wandb", "none"], default="tensorboard", help="experiment logger backend")
+    parser.add_argument("--log_dir", type=str, default="runs", help="TensorBoard log root directory")
     parser.add_argument("--experiment_name", type=str, default="default", help="name of the experiment")
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="directory to save checkpoints")
     parser.add_argument("--checkpoint_every", type=int, default=0, help="save checkpoint every n epochs. 0 to disable")

@@ -1,14 +1,21 @@
 import os
 import random
+import json
+import atexit
 import numpy as np
 import torch
 import torch.distributed as dist
-import wandb
 
 from harpl.data.image_dataloader import ImageSequencesDataLoader, SpriteVideoDataLoader
 from harpl.data._valid_names_lists import DATASET_NAMES
 from harpl.modules.criterion import PredLoss, InvLoss, SupervisedLoss
 from harpl.modules.utils import LinearWarmupCosineAnnealingLR
+
+
+_LOGGER_BACKEND = "none"
+_TENSORBOARD_WRITER = None
+_PENDING_LOGS = {}
+_LOG_STEP = 0
 
 
 def get_data_specs(dataset, 
@@ -141,7 +148,6 @@ def prepare_data(
             seq_type=mnist_seqtype,
             num_sequences=num_sequences,
             val_size=val_size,
-            imgs=dataset,
             inter_trial_interval=inter_trial_interval
         )
         train_loader, train_sampler = dataloader.get_train(batch_size)
@@ -425,22 +431,110 @@ def dist_reduce_mean(tensor):
     return tensor
 
 
-def log_variable(variable, label, commit=True):
-    """Log variable to wandb
+def init_logger(args):
+    """Initialize the configured experiment logger on the main process."""
+    global _LOGGER_BACKEND, _TENSORBOARD_WRITER, _PENDING_LOGS, _LOG_STEP
 
-    Args:
-        variable (torch.Tensor): Variable to log
-        label (str): Label for the variable
-        commit (bool, optional): Whether to commit the log. Defaults to True.
+    _PENDING_LOGS = {}
+    _LOG_STEP = 0
+    if getattr(args, "nolog", False) or getattr(args, "logger", "tensorboard") == "none":
+        _LOGGER_BACKEND = "none"
+        return
+    if not is_main_process():
+        _LOGGER_BACKEND = "none"
+        return
 
-    Returns:
-        torch.Tensor: Logged variable
-    """
+    _LOGGER_BACKEND = args.logger
+    if _LOGGER_BACKEND == "wandb":
+        import wandb
+        wandb.init(project="HARPL", name=args.experiment_name, config=args)
+    elif _LOGGER_BACKEND == "tensorboard":
+        from torch.utils.tensorboard import SummaryWriter
+        log_dir = os.path.join(args.log_dir, args.experiment_name)
+        _TENSORBOARD_WRITER = SummaryWriter(log_dir=log_dir)
+        _TENSORBOARD_WRITER.add_text("config", _format_args_for_tensorboard(args), 0)
+    else:
+        raise ValueError(f"Unknown logger backend: {_LOGGER_BACKEND}")
+
+
+def close_logger():
+    """Flush and close the configured experiment logger."""
+    global _TENSORBOARD_WRITER
+    if _LOGGER_BACKEND == "tensorboard" and _TENSORBOARD_WRITER is not None:
+        _TENSORBOARD_WRITER.flush()
+        _TENSORBOARD_WRITER.close()
+        _TENSORBOARD_WRITER = None
+
+
+atexit.register(close_logger)
+
+
+def _format_args_for_tensorboard(args):
+    args_dict = vars(args)
+    formatted = json.dumps(args_dict, indent=2, sort_keys=True)
+    return f"```json\n{formatted}\n```"
+
+
+def _as_loggable_value(variable):
     if isinstance(variable, torch.Tensor):
         variable = variable.detach().clone()
         variable = dist_reduce_mean(variable)
         if variable.numel() == 1:
-            variable = variable.item()
+            return variable.item()
+        return variable.detach().cpu().flatten()
+    if isinstance(variable, np.ndarray):
+        if variable.size == 1:
+            return variable.item()
+        return variable.flatten()
+    return variable
+
+
+def _write_tensorboard_scalar(label, value, step):
+    if _TENSORBOARD_WRITER is None:
+        return
+    if value is None:
+        return
+    if isinstance(value, torch.Tensor):
+        value = value.detach().cpu().flatten().numpy()
+    if isinstance(value, np.ndarray):
+        if value.size == 1:
+            _TENSORBOARD_WRITER.add_scalar(label, value.item(), step)
+        else:
+            for idx, item in enumerate(value.flatten()):
+                _TENSORBOARD_WRITER.add_scalar(f"{label}/{idx}", item, step)
+    elif isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            _TENSORBOARD_WRITER.add_scalar(label, value[0], step)
+        else:
+            for idx, item in enumerate(value):
+                _TENSORBOARD_WRITER.add_scalar(f"{label}/{idx}", item, step)
+    else:
+        _TENSORBOARD_WRITER.add_scalar(label, value, step)
+
+
+def log_variable(variable, label, commit=True):
+    """Log a variable to the configured experiment logger.
+
+    Args:
+        variable (torch.Tensor): Variable to log
+        label (str): Label for the variable
+        commit (bool, optional): Whether to commit the log batch. Defaults to True.
+
+    Returns:
+        torch.Tensor: Logged variable
+    """
+    global _PENDING_LOGS, _LOG_STEP
+    variable = _as_loggable_value(variable)
     if is_main_process():
-        wandb.log({label: variable}, commit=commit)
+        if _LOGGER_BACKEND == "wandb":
+            import wandb
+            wandb.log({label: variable}, commit=commit)
+        elif _LOGGER_BACKEND == "tensorboard":
+            _PENDING_LOGS[label] = variable
+            if commit:
+                for pending_label, pending_value in _PENDING_LOGS.items():
+                    _write_tensorboard_scalar(pending_label, pending_value, _LOG_STEP)
+                _TENSORBOARD_WRITER.flush()
+                _PENDING_LOGS = {}
+                _LOG_STEP += 1
     return variable

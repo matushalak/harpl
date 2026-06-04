@@ -20,7 +20,7 @@ dependencies = [
     "kornia==0.8.0",
     "tqdm==4.66.1",
     "triton==2.0.0",
-    "wandb==0.16.1",
+    "wandb==0.22.3",
 ]
 
 [tool.setuptools.packages.find]

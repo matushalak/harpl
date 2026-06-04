@@ -6,7 +6,7 @@ scipy==1.12.0
 tensorboard>=2.16
 kornia==0.8.0
 tqdm==4.66.1
-wandb==0.16.1
+wandb==0.22.3
 torch==2.0.1
 torchvision==0.15.2
 torchaudio==2.0.2

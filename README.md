@@ -1,5 +1,7 @@
 # HARPL
 
+Branch: `mps-cpu`
+
 HARPL is a focused fork of the original Recurrent Predictive Learning codebase.
 It keeps only the code needed to train and evaluate on:
 
@@ -63,5 +65,5 @@ tensorboard --logdir runs
 
 Use W&B explicitly with `--logger wandb`.
 
-You can force a device with `--device cpu`, `--device mps`, or `--device cuda`.
-The default is `--device auto`.
+This branch is intended for CPU and Apple MPS runs. You can force a device with
+`--device cpu` or `--device mps`; the default is `--device auto`.

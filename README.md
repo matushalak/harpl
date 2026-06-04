@@ -12,8 +12,8 @@ The fork removes LibriSpeech, mouse videos, PFC oddballs, notebooks, raw baselin
 and CUDA-only launcher defaults.
 
 This branch is intended for CUDA GPU runs. It keeps the cleaned HARPL dataset
-scope while restoring the original CUDA-oriented install and `torchrun` launcher
-shape from `fmi-basel/recurrent-predictive-learning`.
+scope while using the CUDA-oriented PyTorch dependency stack from
+`fmi-basel/recurrent-predictive-learning`.
 
 ## Setup
 
@@ -25,8 +25,9 @@ mamba activate harpl-gpu
 ```
 
 The Conda environment uses Python 3.10 and pip-installs `requirements.txt`,
-including CUDA 11 PyTorch, NVIDIA runtime wheels, NCCL, and Triton. Verify CUDA
-before launching training:
+including CUDA 11 PyTorch, NVIDIA runtime wheels, NCCL, and Triton. HARPL itself
+currently runs single-process CUDA; its argument checks still reject distributed
+training. Verify CUDA before launching training:
 
 ```bash
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
@@ -37,12 +38,10 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 TensorBoard is the default logger. Use `--nolog` to disable experiment logging.
 
 ```bash
-HARPL_NPROC_PER_NODE=1 bash bash_scripts/mnist_triplets.sh --epochs 1 --offline_epochs 1
-HARPL_NPROC_PER_NODE=1 bash bash_scripts/moving_animals.sh --epochs 1 --offline_epochs 1
-HARPL_NPROC_PER_NODE=1 bash bash_scripts/hRPL.sh --epochs 1 --offline_epochs 1
+bash bash_scripts/mnist_triplets.sh --device cuda --epochs 1 --offline_epochs 1
+bash bash_scripts/moving_animals.sh --device cuda --epochs 1 --offline_epochs 1
+bash bash_scripts/hRPL.sh --device cuda --epochs 1 --offline_epochs 1
 ```
-
-Increase `HARPL_NPROC_PER_NODE` for multi-GPU training.
 
 TensorBoard logs are written under `runs/<experiment_name>/` by default:
 
@@ -53,5 +52,5 @@ tensorboard --logdir runs
 
 Use W&B explicitly with `--logger wandb`.
 
-This branch defaults distributed training to the `nccl` backend and is not meant
-for Apple MPS.
+This branch is not meant for Apple MPS. Multi-GPU DDP is not enabled by default
+because `check_args()` currently rejects `--distributed`.

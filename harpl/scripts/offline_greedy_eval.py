@@ -591,6 +591,8 @@ if __name__ == "__main__":
     add_ddp_args(parser)
     args = parser.parse_args()
 
+    if args.offline_task == "none":
+        args.offline_task = None
     if args.offline_task is None:
         raise ValueError("Please specify the task for offline evaluation")
 

@@ -18,6 +18,26 @@ _PENDING_LOGS = {}
 _LOG_STEP = 0
 
 
+def is_cuda_device(device):
+    if isinstance(device, int):
+        return torch.cuda.is_available()
+    try:
+        return torch.device(device).type == "cuda"
+    except (RuntimeError, TypeError):
+        return False
+
+
+def cuda_memory_stats(device):
+    if not is_cuda_device(device):
+        return {}
+    device = torch.device(device) if not isinstance(device, int) else device
+    return {
+        "GPU/memory_allocated_gb": torch.cuda.memory_allocated(device) / 1e9,
+        "GPU/memory_reserved_gb": torch.cuda.memory_reserved(device) / 1e9,
+        "GPU/max_memory_allocated_gb": torch.cuda.max_memory_allocated(device) / 1e9,
+    }
+
+
 def get_data_specs(dataset, 
                    target_label=None, 
                    mnist_seqtype=None,
@@ -67,6 +87,9 @@ def prepare_data(
         val_batch_size=256, 
         target_label="seq2label",
         num_workers=16,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
         grayscale=False,
         mnist_seqtype=None,
         spritevid_max_sprites=16,
@@ -94,6 +117,9 @@ def prepare_data(
         val_batch_size (int): The validation batch size.
         target_label (str): The target label for the dataset.
         num_workers (int): The number of workers for the data loader.
+        pin_memory (bool): Whether to pin DataLoader host memory.
+        persistent_workers (bool): Whether DataLoader workers persist across epochs.
+        prefetch_factor (int): Number of batches prefetched per DataLoader worker.
         grayscale (bool): Whether to load the data in grayscale.
         mnist_seqtype (str): The sequence type for the dataset (only for MNIST, FashionMNIST).
         spritevid_max_sprites (int): The maximum number of sprites (only for sprite videos).
@@ -121,6 +147,9 @@ def prepare_data(
         dataloader = SpriteVideoDataLoader(
             data_dir=data_input_dir,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             val_size=val_size,
             seq_len=seq_len,
             num_sequences=num_sequences,
@@ -144,6 +173,9 @@ def prepare_data(
         dataloader = ImageSequencesDataLoader(
             data_dir=data_input_dir,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             seq_len=seq_len,
             seq_type=mnist_seqtype,
             num_sequences=num_sequences,

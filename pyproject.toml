@@ -9,6 +9,7 @@ description = "Hierarchical Attentive Recurrent Predictive Learning for MNIST tr
 requires-python = ">=3.10"
 dependencies = [
     "numpy==1.26.3",
+    "setuptools>=68",
     "pillow==10.2.0",
     "scikit-learn==1.4.1.post1",
     "scipy==1.12.0",

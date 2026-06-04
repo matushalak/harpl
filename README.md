@@ -1,5 +1,7 @@
 # HARPL
 
+Branch: `jsc-cpu`
+
 HARPL is a focused fork of the original Recurrent Predictive Learning codebase.
 It keeps only the code needed to train and evaluate on:
 
@@ -26,22 +28,24 @@ and CUDA-only launcher defaults.
   HARPL keeps dataset generation on CPU by default, then moves training batches to
   the selected compute device.
 
-## Setup
+## Setup On JSC CPU
 
 From this directory:
 
 ```bash
-mamba env create -f environment.yml
-mamba activate harpl
+bash cluster/jsc-cpu/setup.sh
+source cluster/jsc-cpu/activate.sh
 ```
 
-The mamba environment installs HARPL as an editable Python package through
-`pyproject.toml`, including PyTorch and torchvision. On Apple Silicon, the current
-PyTorch wheel includes MPS support and HARPL will use `mps` automatically when
-available:
+This branch follows JSC's official `sc_venv_template` pattern: load modules in
+`modules.sh`, create a virtual environment with `--system-site-packages`, then
+install extra pip packages from `requirements.txt`.
+
+The JSC CPU profile intentionally does not load JSC's PyTorch module. It installs
+CPU-only PyTorch wheels and then installs HARPL editable from this checkout:
 
 ```bash
-python -c "import torch; print(torch.backends.mps.is_available())"
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 
 ## Run
@@ -63,5 +67,4 @@ tensorboard --logdir runs
 
 Use W&B explicitly with `--logger wandb`.
 
-You can force a device with `--device cpu`, `--device mps`, or `--device cuda`.
-The default is `--device auto`.
+This branch is intended for JSC CPU jobs. Run with `--device cpu`.

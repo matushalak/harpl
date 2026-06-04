@@ -3,6 +3,7 @@ __pycache__/
 *.egg-info/
 
 .venv/
+cluster/jsc-cpu/venv/
 .mypy_cache/
 .pytest_cache/
 

@@ -1,0 +1,6 @@
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+pip
+ipykernel
+torch>=2.2
+torchvision>=0.17

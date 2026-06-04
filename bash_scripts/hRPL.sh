@@ -1,4 +1,5 @@
-python -m harpl.scripts.greedy \
+torchrun --nproc-per-node="${HARPL_NPROC_PER_NODE:-1}" --rdzv-backend=c10d --rdzv-endpoint=localhost:0 -m harpl.scripts.greedy \
+    --distributed \
     --dataset animals \
     --spritevid_max_sprites 8 \
     --spritevid_noise_type gaussian \

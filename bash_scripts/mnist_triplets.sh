@@ -1,4 +1,5 @@
-python -m harpl.scripts.cli \
+torchrun --nproc-per-node="${HARPL_NPROC_PER_NODE:-1}" --rdzv-backend=c10d --rdzv-endpoint=localhost:0 -m harpl.scripts.cli \
+    --distributed \
     --dataset mnist \
     --grayscale \
     --flatten_images \

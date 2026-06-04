@@ -178,7 +178,7 @@ def add_offline_eval_args(parser):
 def add_ddp_args(parser):
     parser.add_argument("--distributed", action="store_true", help="use distributed training")
     parser.add_argument("--distribute_data", action="store_true", help="distribute data minibatches across nodes")
-    parser.add_argument("--dist_backend", type=str, default="gloo", help="distributed backend")
+    parser.add_argument("--dist_backend", type=str, default="nccl", help="distributed backend")
     parser.add_argument("--dist_url", type=str, default="env://", help="distributed url")
     # parser.add_argument("--local_world_size", type=int, default=2, help="number of nodes for distributed training")
     parser.add_argument("--local-rank", type=int, default=0, help="node rank for distributed training")

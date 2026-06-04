@@ -18,7 +18,7 @@ dependencies = [
     "tensorboard>=2.16",
     "kornia>=0.8",
     "tqdm>=4.66",
-    "wandb>=0.16",
+    "wandb>=0.22.3",
 ]
 
 [tool.setuptools.packages.find]

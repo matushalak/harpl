@@ -48,6 +48,54 @@ class EncoderNetwork(nn.Module):
     def forward(self, x):
         z = self.backbone(x)  # (B, L, C)
         return z
+    
+
+class DecoderNetwork(nn.Module):
+    """Base class for decoder networks
+
+    Args:
+        backbone (nn.Sequential): Backbone network
+        decoded_dim (int): Dimension of the decoded representation. Default: 64
+
+    Attributes:
+        backbone (nn.Sequential): Backbone network
+        decoded_dim (int): Dimension of the decoded representation
+
+    Notes:
+        The `forward` method expects the following inputs:
+        - x: Input tensor of shape (B, ..., L)
+
+        The `forward` method outputs the following:
+        - z: Decoded representation of shape (B, L, C)
+    """
+
+    def __init__(self, backbone=nn.Sequential(), decoded_dim=64):
+        super(DecoderNetwork, self).__init__()
+        self.backbone = backbone
+        self.decoded_dim = decoded_dim
+
+    def get_output_dim(self):
+        """Get the output dimension of the decoder
+
+        Returns:
+            int: Output dimension of the decoder
+        """
+        return self.decoded_dim
+    
+    def get_output_spatial_shape(self, input_shape):
+        """Get the output spatial shape of the decoder
+
+        Args:
+            input_shape (tuple): Input shape
+
+        Returns:
+            int: Output spatial shape of the decoder
+        """
+        raise NotImplementedError("get_output_spatial_shape method is not implemented for class {}".format(self.__class__.__name__))
+
+    def forward(self, z):
+        x_hat = self.backbone(z)  # (B, L, C)
+        return x_hat
 
 
 class IntegratorNetwork(nn.Module):

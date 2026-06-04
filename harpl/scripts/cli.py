@@ -159,6 +159,8 @@ def main(args, device):
         pred_loss_type=args.pred_loss_type,
         full_spatial_readout=args.online_full_spatial_readout,
         no_sg=args.no_sg,
+        sigreg_lambd_=args.sigreg_lambd_,
+        sigreg_knots=args.sigreg_knots,
     )
     classifier_criterion = torch.nn.CrossEntropyLoss(ignore_index=-1)
     regression_criterion = torch.nn.MSELoss()

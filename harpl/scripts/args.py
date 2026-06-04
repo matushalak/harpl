@@ -141,6 +141,8 @@ def add_criterion_args(parser):
     parser.add_argument("--decorr_coef", type=float, default=10.0, help="decorrelation coefficient")
     parser.add_argument("--pred_loss_type", choices=["cosine", "l2"], default="l2", help="predictor loss type (only used for Pred loss)")
     parser.add_argument("--no_sg", action="store_true", help="do not use stop-gradient for the target network (only applies to non-contrastive SSL losses)")
+    parser.add_argument("--sigreg_lambd_", type=float, default=1.0, help="weight of the SigReg regularization term (only applies to LeJEPALoss)")
+    parser.add_argument("--sigreg_knots", type=int, default=17, help="number of knots for the SIGReg regularization (only applies to LeJEPALoss)")
 
 
 def add_validation_args(parser):

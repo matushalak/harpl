@@ -307,3 +307,67 @@ class SupervisedLoss(nn.Module):
             else:
                 logits = self.readout(data)
             return self.loss_fn(logits, labels)
+
+
+# Additions for HARPL
+class SIGReg(torch.nn.Module):
+    """"
+    SigReg (Sketched Isotropic Gaussian Regularization), taken and adapted from 
+    "LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics" (https://arxiv.org/abs/2511.08544)
+    
+    Based on Epps-Pulley test statistics, measuring the distance 
+    between the distribution of the latent representations and an isotropic Gaussian distribution.
+    """
+    def __init__(self, knots=17):
+        super().__init__()
+        t = torch.linspace(0, 3, knots, dtype=torch.float32)
+        dt = 3 / (knots - 1)
+        weights = torch.full((knots,), 2 * dt, dtype=torch.float32)
+        weights[[0, -1]] = dt
+        window = torch.exp(-t.square() / 2.0)
+        self.register_buffer("t", t)
+        self.register_buffer("phi", window)
+        self.register_buffer("weights", weights * window)
+
+    def forward(self, proj):
+        A = torch.randn(proj.size(-1), 256, device=proj.device)
+        A = A.div_(A.norm(p=2, dim=0))
+        x_t = (proj @ A).unsqueeze(-1) * self.t
+        err = (x_t.cos().mean(-3) - self.phi).square() + x_t.sin().mean(-3).square()
+        statistic = (err @ self.weights) * proj.size(-2)
+        return statistic.mean()
+
+
+class LeJEPALoss(Criterion):
+    """"
+    LeJEPALoss = (1 - Lambda) * PredLoss + Lambda * SigRegLoss
+
+    (Pull loss) PredLoss ensures latent alignment
+    (Push loss) SigRegLoss prevents collapse by maximizing latent entropy, and ensures we don't need stop-gradient
+    """
+    def __init__(self,
+                 pred_steps,
+                 discount_factor=0.0,
+                 dense_prediction=False,
+                 pred_loss_type='cosine',
+                 no_sg=True,
+                 sigreg_lambd_=1.0, 
+                 sigreg_knots=17
+                 ):
+        super().__init__(pred_steps)
+        # SigReg removes need for stop-gradient
+        self.L_pred = PredLoss(pred_steps, discount_factor, dense_prediction, pred_loss_type, no_sg=True)
+        self.L_sig_reg = SIGReg(knots=sigreg_knots)
+        self.lambd_ = sigreg_lambd_
+
+    def forward(self, pred_target, pred):
+        pred_loss = self.L_pred(pred_target, pred)
+        sig_reg_loss = self.L_sig_reg(pred_target)
+        total_loss = (1 - self.lambd_) * pred_loss + self.lambd_ * sig_reg_loss
+        return total_loss
+    
+    def pred_loss(self, pred_target, pred):
+        return PredLoss.forward(self, pred_target, pred)
+    
+    def sig_reg_loss(self, latent):
+        return self.L_sig_reg(latent)

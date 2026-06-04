@@ -19,7 +19,8 @@ python -m harpl.scripts.cli \
     --predictor mlp \
     --pred_hidden_dim 512 \
     --pred_steps 1 \
-    --epochs 1000 \
+    --checkpoint_every 25 \
+    --epochs 500 \
     --use_scheduler \
     --lr 3e-4 \
     --batch_size 128 \

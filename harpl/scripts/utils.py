@@ -8,7 +8,7 @@ import torch.distributed as dist
 
 from harpl.data.image_dataloader import ImageSequencesDataLoader, SpriteVideoDataLoader
 from harpl.data._valid_names_lists import DATASET_NAMES
-from harpl.modules.criterion import PredLoss, InvLoss, SupervisedLoss
+from harpl.modules.criterion import PredLoss, InvLoss, SupervisedLoss, LeJEPALoss
 from harpl.modules.utils import LinearWarmupCosineAnnealingLR
 
 
@@ -222,7 +222,9 @@ def prepare_criterion(
         dense_prediction=False,
         pred_loss_type="cosine",
         full_spatial_readout=False,
-        no_sg=False):
+        no_sg=False,
+        sigreg_lambd_ = 1.0,
+        sigreg_knots = 17):
     """Prepare the loss function (criterion)
 
     Args:
@@ -258,6 +260,15 @@ def prepare_criterion(
                             no_sg=no_sg)
     elif loss == "supervised":
         criterion = SupervisedLoss(readout=readout, task=classification_task, full_spatial_readout=full_spatial_readout)
+    elif loss == "lejepa":
+        criterion = LeJEPALoss(pred_steps=pred_steps, 
+                               discount_factor=discount_factor,
+                               dense_prediction=dense_prediction,
+                               pred_loss_type=pred_loss_type,
+                               no_sg=True,
+                               sigreg_lambd_=sigreg_lambd_,
+                               sigreg_knots=sigreg_knots)
+
     else:
         raise NotImplementedError(f"Loss {loss} not implemented")
     return criterion

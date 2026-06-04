@@ -10,6 +10,11 @@ PROJECT_ROOT="$(realpath "${ABSOLUTE_PATH}/../..")"
 source "${ABSOLUTE_PATH}/config.sh"
 source "${ABSOLUTE_PATH}/modules.sh"
 
+if [[ -d "${ENV_DIR}" ]]; then
+    echo "Removing existing JSC CPU venv at ${ENV_DIR}"
+    rm -rf "${ENV_DIR}"
+fi
+
 python3 -m venv --prompt "$ENV_NAME" --system-site-packages "${ENV_DIR}"
 
 source "${ABSOLUTE_PATH}/activate.sh"

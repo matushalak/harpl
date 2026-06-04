@@ -6,6 +6,8 @@ DEVICE="${HARPL_DEVICE:-cuda}"
 EPOCHS="${HARPL_DIAG_EPOCHS:-2}"
 NUM_SEQUENCES="${HARPL_DIAG_NUM_SEQUENCES:-16000}"
 PREFETCH_FACTOR="${HARPL_PREFETCH_FACTOR:-2}"
+VAL_BATCH_SIZE="${HARPL_DIAG_VAL_BATCH_SIZE:-128}"
+OFFLINE_BATCH_SIZE="${HARPL_DIAG_OFFLINE_BATCH_SIZE:-128}"
 
 CONFIGS=(
     "128 0"
@@ -33,6 +35,8 @@ echo "  epochs=${EPOCHS}"
 echo "  num_sequences=${NUM_SEQUENCES}"
 echo "  batch_size=${BATCH_SIZE}"
 echo "  num_workers=${NUM_WORKERS}"
+echo "  val_batch_size=${VAL_BATCH_SIZE}"
+echo "  offline_batch_size=${OFFLINE_BATCH_SIZE}"
 echo "  prefetch_factor=${PREFETCH_FACTOR}"
 
 bash "$SCRIPT_DIR/moving_animals.sh" \
@@ -41,8 +45,8 @@ bash "$SCRIPT_DIR/moving_animals.sh" \
     --epochs "$EPOCHS" \
     --num_sequences "$NUM_SEQUENCES" \
     --batch_size "$BATCH_SIZE" \
-    --val_batch_size "$BATCH_SIZE" \
-    --offline_batch_size "$BATCH_SIZE" \
+    --val_batch_size "$VAL_BATCH_SIZE" \
+    --offline_batch_size "$OFFLINE_BATCH_SIZE" \
     --num_workers "$NUM_WORKERS" \
     --prefetch-factor "$PREFETCH_FACTOR" \
     --val_size 0.1 \

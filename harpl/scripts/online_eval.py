@@ -176,6 +176,9 @@ def online_eval(args,
             _ = log_variable(criterion.pull_loss_val, "Pull loss (val.)", commit=False)
             _ = log_variable(criterion.push_loss_val, "Push loss (val.)", commit=False)
             _ = log_variable(criterion.decorr_loss_val, "Decorrelation loss (val.)", commit=False)
+        elif args.loss == "lejepa":
+            _ = log_variable(criterion.pred_loss_val, "Prediction loss (val.)", commit=False)
+            _ = log_variable(criterion.sig_reg_loss_val, "SigReg loss (val.)", commit=False)
     else:
         val_acc = dist_reduce_mean(classifier_acc1)
         part_ratio_log = dist_reduce_mean(part_ratio)

@@ -351,7 +351,7 @@ class LeJEPALoss(Criterion):
                  dense_prediction=False,
                  pred_loss_type='cosine',
                  no_sg=True,
-                 sigreg_lambd_=1.0, 
+                 sigreg_lambd_=0.5, 
                  sigreg_knots=17
                  ):
         super().__init__(pred_steps)
@@ -359,11 +359,13 @@ class LeJEPALoss(Criterion):
         self.L_pred = PredLoss(pred_steps, discount_factor, dense_prediction, pred_loss_type, no_sg=True)
         self.L_sig_reg = SIGReg(knots=sigreg_knots)
         self.lambd_ = sigreg_lambd_
+        self.pred_loss_val = 0.0
+        self.sig_reg_loss_val = 0.0
 
     def forward(self, pred_target, pred):
-        pred_loss = self.L_pred(pred_target, pred)
-        sig_reg_loss = self.L_sig_reg(pred_target)
-        total_loss = (1 - self.lambd_) * pred_loss + self.lambd_ * sig_reg_loss
+        self.pred_loss_val = self.L_pred(pred_target, pred)
+        self.sig_reg_loss_val = self.L_sig_reg(pred_target)
+        total_loss = (1 - self.lambd_) * self.pred_loss_val + self.lambd_ * self.sig_reg_loss_val
         return total_loss
     
     def pred_loss(self, pred_target, pred):

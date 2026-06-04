@@ -5,8 +5,8 @@
 #SBATCH --job-name=HarplMovingAnimalsParallel
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=08:00:00
-#SBATCH --array=0-7
+#SBATCH --time=09:00:00
+#SBATCH --array=0-2
 #SBATCH --output=slurm_moving_animals_parallel_%A_%a.out
 #SBATCH --error=slurm_moving_animals_parallel_%A_%a.err
 
@@ -30,23 +30,18 @@ which python
 python -V
 python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 
-# Config arrays for 8 parallel jobs
-SEEDS=(1 2 3 1 2 3 1 1)
-LOSSES=(lejepa lejepa lejepa pred pred pred supervised supervised)
-TARGETS=(enc enc enc enc enc enc "" "")
-LR_MULTS=(10 10 10 10 10 10 "" "")
+# Config arrays for 3 parallel jobs
+SEEDS=(1 2 3)
+LOSSES=(lejepa lejepa lejepa)
+TARGETS=(enc enc enc)
+LR_MULTS=(10 10 10)
 EXP_NAMES=(
     "animals_cts_noiseOnTop0.1_lejepa_1"
     "animals_cts_noiseOnTop0.1_lejepa_2"
     "animals_cts_noiseOnTop0.1_lejepa_3"
-    "animals_cts_noiseOnTop0.1_pred_1"
-    "animals_cts_noiseOnTop0.1_pred_2"
-    "animals_cts_noiseOnTop0.1_pred_3"
-    "animals_cts_noiseOnTop0.1_supervised_1"
-    "animals_cts_noiseOnTop0.1_random_1"
 )
-FREEZES=(0 0 0 0 0 0 0 1)
-CUSTOM_LRS=(0 0 0 0 0 0 1 0)
+FREEZES=(0 0 0)
+CUSTOM_LRS=(0 0 0)
 
 SEED="${SEEDS[$SLURM_ARRAY_TASK_ID]}"
 LOSS="${LOSSES[$SLURM_ARRAY_TASK_ID]}"

@@ -21,7 +21,7 @@ python -m harpl.scripts.cli \
     --predictor mlp \
     --pred_hidden_dim 512 \
     --pred_steps 1 \
-    --checkpoint_every "${HARPL_CHECKPOINT_EVERY:-25}" \
+    --checkpoint_every "${HARPL_CHECKPOINT_EVERY:-50}" \
     --epochs "${HARPL_EPOCHS:-500}" \
     --use_scheduler \
     --lr 3e-4 \

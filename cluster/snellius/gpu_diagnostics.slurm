@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
 #SBATCH --time=04:00:00
-#SBATCH --array=0-5
+#SBATCH --array=0-0
 #SBATCH --output=slurm_gpu_diag_%A_%a.out
 #SBATCH --error=slurm_gpu_diag_%A_%a.err
 

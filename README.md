@@ -48,7 +48,14 @@ python -c "import torch; print(torch.backends.mps.is_available())"
 
 ## Run
 
-TensorBoard is the default logger. Use `--nolog` to disable experiment logging.
+W&B is the default logger. Log in once per machine before running:
+
+```bash
+wandb login
+```
+
+Use `--nolog` to disable experiment logging, or `--logger tensorboard` to use
+local TensorBoard logs instead.
 
 ```bash
 bash bash_scripts/mnist_triplets.sh --nolog --epochs 1 --offline_epochs 1
@@ -56,14 +63,13 @@ bash bash_scripts/moving_animals.sh --nolog --epochs 1 --offline_epochs 1
 bash bash_scripts/hRPL.sh --nolog --epochs 1 --offline_epochs 1
 ```
 
-TensorBoard logs are written under `runs/<experiment_name>/` by default:
+TensorBoard logs are written under `runs/<experiment_name>/` when using
+`--logger tensorboard`:
 
 ```bash
 bash bash_scripts/mnist_triplets.sh --epochs 1 --offline_epochs 1
 tensorboard --logdir runs
 ```
-
-Use W&B explicitly with `--logger wandb`.
 
 This branch is intended for CPU and Apple MPS runs. You can force a device with
 `--device cpu` or `--device mps`; the default is `--device auto`.

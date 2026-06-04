@@ -89,7 +89,7 @@ def add_data_args(parser):
     parser.add_argument("--dataset", choices=DATASET_NAMES, default="stl10", help="dataset")
     parser.add_argument("--val_size", type=float, default=0.0, help="validation size")
     parser.add_argument("--data_input_dir", type=str, default="datasets", help="path to the data directory")
-    parser.add_argument("--num_workers", type=int, default=16, help="number of workers for data loading")
+    parser.add_argument("--num_workers", type=int, default=8, help="number of workers for data loading")
     parser.add_argument("--seq_len", type=int, default=None, help="sequence length")
     parser.add_argument("--grayscale", action="store_true", help="use grayscale images")
     parser.add_argument("--flatten_images", action="store_true", help="flatten images (only applies to small image datasets)")
@@ -147,7 +147,7 @@ def add_criterion_args(parser):
 
 def add_validation_args(parser):
     parser.add_argument("--evaluate_concat_features", action="store_true", help="evaluate concatenated features")
-    parser.add_argument("--val_batch_size", type=int, default=256, help="batch size")
+    parser.add_argument("--val_batch_size", type=int, default=128, help="batch size")
 
 
 def add_online_eval_args(parser):
@@ -163,7 +163,7 @@ def add_online_eval_args(parser):
 def add_offline_eval_args(parser):
     parser.add_argument("--offline_task", choices=["seq2label", "seq2seq", "multitask"], default=None, help="evaluate offline on a classification task")
     parser.add_argument("--offline_input", choices=["enc", "ctx", "pred"], default="enc", help="input to the offline classifier")
-    parser.add_argument("--offline_batch_size", type=int, default=256, help="batch size for offline evaluation")
+    parser.add_argument("--offline_batch_size", type=int, default=128, help="batch size for offline evaluation")
     parser.add_argument("--offline_lr", type=float, default=1e-3, help="learning rate for offline evaluation")
     parser.add_argument("--offline_weight_decay", type=float, default=1e-5, help="weight decay for offline evaluation")
     parser.add_argument("--offline_optimizer", choices=["adam", "sgd"], default="adam", help="optimizer to use for offline evaluation")

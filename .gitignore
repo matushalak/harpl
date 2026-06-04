@@ -11,3 +11,5 @@ wandb/
 runs/
 
 datasets/mnist/
+
+reports/

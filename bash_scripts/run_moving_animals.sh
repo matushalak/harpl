@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # quick and dirty
 DEVICE="${HARPL_DEVICE:-cpu}"
 

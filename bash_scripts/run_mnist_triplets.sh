@@ -1,3 +1,5 @@
+#!/bin/bash
+
 DEVICE="${HARPL_DEVICE:-cpu}"
 
 for i in {1..3}; do

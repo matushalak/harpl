@@ -448,7 +448,7 @@ def init_logger(args):
 
     _PENDING_LOGS = {}
     _LOG_STEP = 0
-    if getattr(args, "nolog", False) or getattr(args, "logger", "tensorboard") == "none":
+    if getattr(args, "nolog", False) or getattr(args, "logger", "wandb") == "none":
         _LOGGER_BACKEND = "none"
         return
     if not is_main_process():
@@ -471,7 +471,10 @@ def init_logger(args):
 def close_logger():
     """Flush and close the configured experiment logger."""
     global _TENSORBOARD_WRITER
-    if _LOGGER_BACKEND == "tensorboard" and _TENSORBOARD_WRITER is not None:
+    if _LOGGER_BACKEND == "wandb":
+        import wandb
+        wandb.finish()
+    elif _LOGGER_BACKEND == "tensorboard" and _TENSORBOARD_WRITER is not None:
         _TENSORBOARD_WRITER.flush()
         _TENSORBOARD_WRITER.close()
         _TENSORBOARD_WRITER = None

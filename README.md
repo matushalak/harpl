@@ -35,7 +35,14 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 
 ## Run
 
-TensorBoard is the default logger. Use `--nolog` to disable experiment logging.
+W&B is the default logger. Log in once per machine before running:
+
+```bash
+wandb login
+```
+
+Use `--nolog` to disable experiment logging, or `--logger tensorboard` to use
+local TensorBoard logs instead.
 
 ```bash
 bash bash_scripts/mnist_triplets.sh --device cuda --epochs 1 --offline_epochs 1
@@ -43,14 +50,13 @@ bash bash_scripts/moving_animals.sh --device cuda --epochs 1 --offline_epochs 1
 bash bash_scripts/hRPL.sh --device cuda --epochs 1 --offline_epochs 1
 ```
 
-TensorBoard logs are written under `runs/<experiment_name>/` by default:
+TensorBoard logs are written under `runs/<experiment_name>/` when using
+`--logger tensorboard`:
 
 ```bash
 bash bash_scripts/mnist_triplets.sh --epochs 1 --offline_epochs 1
 tensorboard --logdir runs
 ```
-
-Use W&B explicitly with `--logger wandb`.
 
 This branch is not meant for Apple MPS. Multi-GPU DDP is not enabled by default
 because `check_args()` currently rejects `--distributed`.

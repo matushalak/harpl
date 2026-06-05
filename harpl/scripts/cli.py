@@ -232,22 +232,23 @@ def main(args, device):
             # optimizer.load_state_dict(
             #     torch.load(os.path.join(checkpoint_dir, f"optimizer_{epoch}.pt"), map_location=map_location)
             # )
-        # initial evaluation
-        online_eval(args, 
-                    model=model, 
-                    readout=readout, 
-                    test_loader=val_loader, 
-                    criterion=criterion, 
-                    classifier_criterion=classifier_criterion, 
-                    regression_criterion=regression_criterion,
-                    device=device, 
-                    epoch=epoch, 
-                    model_output_idx=model_output_idx, 
-                    multitask=multitask, 
-                    num_classes_seq_labels=num_classes_seq_labels, 
-                    num_classes_dense_labels=num_classes_dense_labels,
-                    num_regression_targets=num_regression_targets,
-                    num_regression_dense_targets=num_regression_dense_targets)
+        # online validation
+        if args.online_eval_every > 0 and epoch % args.online_eval_every == 0:
+            online_eval(args, 
+                        model=model, 
+                        readout=readout, 
+                        test_loader=val_loader, 
+                        criterion=criterion, 
+                        classifier_criterion=classifier_criterion, 
+                        regression_criterion=regression_criterion,
+                        device=device, 
+                        epoch=epoch, 
+                        model_output_idx=model_output_idx, 
+                        multitask=multitask, 
+                        num_classes_seq_labels=num_classes_seq_labels, 
+                        num_classes_dense_labels=num_classes_dense_labels,
+                        num_regression_targets=num_regression_targets,
+                        num_regression_dense_targets=num_regression_dense_targets)
 
         # train
         last_batch_end = time.perf_counter()

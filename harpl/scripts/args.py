@@ -159,6 +159,7 @@ def add_online_eval_args(parser):
     parser.add_argument("--online_input", choices=["enc", "ctx", "pred"], default="enc", help="input to the online classifier")
     parser.add_argument("--online_lr", type=float, default=1e-3, help="learning rate for online evaluation")
     parser.add_argument("--online_weight_decay", type=float, default=1e-5, help="weight decay for online evaluation")
+    parser.add_argument("--online_eval_every", type=int, default=1, help="run online validation every N epochs; set to 0 to skip per-epoch online validation")
     parser.add_argument("--online_single_timestep_readout", action="store_true", help="use single timestep readout for online evaluation (only applies to online input 'pred' when dense prediction is used)")
     parser.add_argument("--online_full_spatial_readout", action="store_true", help="use full spatial readout for online evaluation")
     parser.add_argument("--save_online_readout", action="store_true", help="save the online readout weights")
@@ -191,6 +192,8 @@ def add_ddp_args(parser):
 def check_args(args):
     if getattr(args, "offline_task", None) == "none":
         args.offline_task = None
+    if getattr(args, "online_eval_every", 1) < 0:
+        raise ValueError("--online_eval_every must be >= 0")
     assert not (args.distributed or args.distribute_data), "Distributed training currently not supported" # TODO
     if args.dataset in ["mnist"]:
         if "online_task" in args:

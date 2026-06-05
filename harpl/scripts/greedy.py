@@ -216,24 +216,25 @@ def main(args, device):
                 torch.save(model.state_dict(), os.path.join(checkpoint_dir, f"model_{epoch}.pt"))
                 torch.save(optimizer.state_dict(), os.path.join(checkpoint_dir, f"optimizer_{epoch}.pt"))
 
-        # evaluation
-        greedy_online_eval(
-            args,
-            model=model,
-            readout=readout,
-            test_loader=val_loader,
-            criterion=criterion,
-            classifier_criterion=classifier_criterion,
-            regression_criterion=regression_criterion,
-            device=device,
-            epoch=epoch,
-            model_output_idx=model_output_idx,
-            multitask=multitask,
-            num_classes_seq_labels=num_classes_seq_labels,
-            num_classes_dense_labels=num_classes_dense_labels,
-            num_regression_targets=num_regression_targets,
-            num_regression_dense_targets=num_regression_dense_targets,
-        )
+        # online validation
+        if args.online_eval_every > 0 and epoch % args.online_eval_every == 0:
+            greedy_online_eval(
+                args,
+                model=model,
+                readout=readout,
+                test_loader=val_loader,
+                criterion=criterion,
+                classifier_criterion=classifier_criterion,
+                regression_criterion=regression_criterion,
+                device=device,
+                epoch=epoch,
+                model_output_idx=model_output_idx,
+                multitask=multitask,
+                num_classes_seq_labels=num_classes_seq_labels,
+                num_classes_dense_labels=num_classes_dense_labels,
+                num_regression_targets=num_regression_targets,
+                num_regression_dense_targets=num_regression_dense_targets,
+            )
 
         # train
         for i, (x, y) in enumerate(tqdm(train_loader)):

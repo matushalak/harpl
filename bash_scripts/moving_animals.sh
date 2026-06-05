@@ -37,6 +37,6 @@ python -m harpl.scripts.cli \
     --offline_batch_size "${HARPL_OFFLINE_BATCH_SIZE:-128}" \
     --offline_epochs "${HARPL_OFFLINE_EPOCHS:-250}" \
     --save_offline_readout \
-    --sigreg_lambd_ 0.5 \
+    --sigreg_lambd_ 0.05 \
     --sigreg_knots 17 \
     --use_sklearn_regression $@

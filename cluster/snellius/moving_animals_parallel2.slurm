@@ -36,9 +36,9 @@ LOSSES=(lejepa lejepa lejepa)
 TARGETS=(enc enc enc)
 LR_MULTS=(10 10 10)
 EXP_NAMES=(
-    "animals_cts_noiseOnTop0.1_lejepa_1"
-    "animals_cts_noiseOnTop0.1_lejepa_2"
-    "animals_cts_noiseOnTop0.1_lejepa_3"
+    "animals_cts_noiseOnTop0.1_Lejepa_1"
+    "animals_cts_noiseOnTop0.1_Lejepa_2"
+    "animals_cts_noiseOnTop0.1_Lejepa_3"
 )
 FREEZES=(0 0 0)
 CUSTOM_LRS=(0 0 0)

@@ -29,7 +29,7 @@ python -m harpl.scripts.greedy \
     --online_task multitask \
     --online_full_spatial_readout \
     --online_input ctx \
-    --online_eval_every "${HARPL_ONLINE_EVAL_EVERY:-5}" \
+    --online_eval_every 5 \
     --val_batch_size "${HARPL_VAL_BATCH_SIZE:-128}" \
     --save_online_readout \
     --offline_task multitask \

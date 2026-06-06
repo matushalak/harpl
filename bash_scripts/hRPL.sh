@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
+read -r -a SPRITEVID_OUTPUT_SIZE_ARGS <<< "${HARPL_SPRITEVID_OUTPUT_SIZE:-64}"
+
 python -m harpl.scripts.greedy \
     --dataset animals \
     --spritevid_max_sprites 8 \
     --spritevid_noise_type gaussian \
     --spritevid_noise_level 0.1 \
+    --spritevid_output_size "${SPRITEVID_OUTPUT_SIZE_ARGS[@]}" \
     --sprite_noise_on_top \
     --seq_len 32 \
     --num_sequences "${HARPL_NUM_SEQUENCES:-16000}" \

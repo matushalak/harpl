@@ -52,6 +52,7 @@ def main(args, device):
                                              target_label=args.online_task,
                                              mnist_seqtype=args.mnist_seqtype,
                                              spritevid_num_sprites=args.spritevid_max_sprites,
+                                             spritevid_output_size=args.spritevid_output_size,
                                              flatten_images=args.flatten_images,)
     
     num_classes_seq_labels = num_classes[0] if multitask else None
@@ -83,6 +84,7 @@ def main(args, device):
             target_label=args.online_task,
             mnist_seqtype=args.mnist_seqtype,
             spritevid_max_sprites=args.spritevid_max_sprites,
+            spritevid_output_size=args.spritevid_output_size,
             spritevid_exclude_latent_regions=args.spritevid_exclude_latent_regions,
             spritevid_discretize_latents=args.spritevid_discretize_latents,
             spritevid_noise_type=args.spritevid_noise_type,

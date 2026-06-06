@@ -189,6 +189,7 @@ def offline_eval(args, model, num_classes, model_output_idx, seq_len, device, in
             target_label=args.offline_task,
             mnist_seqtype=args.mnist_seqtype,
             spritevid_max_sprites=args.spritevid_max_sprites,
+            spritevid_output_size=args.spritevid_output_size,
             spritevid_exclude_latent_regions=False, # we make sure to train the readout on the full latent space
             spritevid_discretize_latents=args.spritevid_discretize_latents,
             spritevid_noise_type=args.spritevid_noise_type,
@@ -416,6 +417,7 @@ def main(args, device):
                                              target_label=args.offline_task,
                                              mnist_seqtype=args.mnist_seqtype,
                                              spritevid_num_sprites=args.spritevid_max_sprites,
+                                             spritevid_output_size=args.spritevid_output_size,
                                              flatten_images=args.flatten_images,)
     
     seq_len = args.seq_len

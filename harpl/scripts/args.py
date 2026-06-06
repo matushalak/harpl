@@ -99,6 +99,7 @@ def add_data_args(parser):
     parser.add_argument("--flatten_images", action="store_true", help="flatten images (only applies to small image datasets)")
     parser.add_argument("--mnist_seqtype", choices=MNIST_SEQTYPES, default="triplets", help="sequence type for MNIST datasets")
     parser.add_argument("--spritevid_max_sprites", type=int, default=16, help="maximum number of sprites in the SpriteVideo dataset")
+    parser.add_argument("--spritevid_output_size", type=int, nargs="+", default=[64], help="SpriteVideo output resolution. Pass one value for square frames, e.g. 96. Two values are height width and require --flatten_images unless square.")
     parser.add_argument("--spritevid_exclude_latent_regions", action="store_true", help="exclude latent regions during training for the SpriteVideo dataset (for testing generalization)")
     parser.add_argument("--spritevid_discretize_latents", action="store_true", help="discretize latents for the SpriteVideo dataset")
     parser.add_argument("--spritevid_noise_type", choices=["gaussian", "salt_pepper"], default=None, help="noise type for the SpriteVideo dataset")

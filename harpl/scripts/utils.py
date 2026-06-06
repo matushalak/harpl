@@ -38,10 +38,29 @@ def cuda_memory_stats(device):
     }
 
 
+def _normalize_spritevid_output_size(output_size):
+    if isinstance(output_size, int):
+        return (output_size, output_size)
+    if isinstance(output_size, str):
+        output_size = [int(output_size)]
+    else:
+        output_size = list(output_size)
+    if len(output_size) == 1:
+        height = width = output_size[0]
+    elif len(output_size) == 2:
+        height, width = output_size
+    else:
+        raise ValueError("--spritevid_output_size expects one value or two values: height width.")
+    if height <= 0 or width <= 0:
+        raise ValueError("--spritevid_output_size values must be positive.")
+    return (height, width)
+
+
 def get_data_specs(dataset, 
                    target_label=None, 
                    mnist_seqtype=None,
                    spritevid_num_sprites=None,
+                   spritevid_output_size=(64, 64),
                    flatten_images=False):
     f"""Get the data specifications for the specified dataset.
     
@@ -67,7 +86,13 @@ def get_data_specs(dataset,
             raise ValueError(f"Invalid sequence type: {mnist_seqtype}")
         input_size = 28 * 28 if flatten_images else 28
     elif dataset == "animals":
-        input_size = 64 * 64 if flatten_images else 64
+        height, width = _normalize_spritevid_output_size(spritevid_output_size)
+        if flatten_images and height != width:
+            input_size = height * width
+        elif height != width:
+            raise ValueError("Non-square SpriteVideo output sizes require --flatten_images.")
+        else:
+            input_size = height * height if flatten_images else height
         num_classes = ({"sprite_idx": spritevid_num_sprites, "rotation_direction": 3},
                        {"x-direction": 3, "y-direction": 3, "z-direction": 3, "x-position (discr)": 33, "y-position (discr)": 33, "z-position (discr)": 17, "orientation": 36},
                        {"speed": 1, "rotation_speed": 1},
@@ -93,6 +118,7 @@ def prepare_data(
         grayscale=False,
         mnist_seqtype=None,
         spritevid_max_sprites=16,
+        spritevid_output_size=(64, 64),
         spritevid_exclude_latent_regions=False,
         spritevid_discretize_latents=False,
         spritevid_noise_type=None,
@@ -124,6 +150,7 @@ def prepare_data(
         grayscale (bool): Whether to load the data in grayscale.
         mnist_seqtype (str): The sequence type for the dataset (only for MNIST, FashionMNIST).
         spritevid_max_sprites (int): The maximum number of sprites (only for sprite videos).
+        spritevid_output_size (tuple[int, int]): SpriteVideo output size as height, width.
         spritevid_exclude_latent_regions (bool): Whether to exclude latent regions during training to test generalization (only for sprite videos).
         spritevid_discretize_latents (bool): Whether to discretize latents (only for sprite videos).
         spritevid_noise_type (str): The noise type (only for sprite videos).
@@ -146,6 +173,7 @@ def prepare_data(
         torch.utils.data.Sampler: The test sampler.
     """
     if dataset == "animals":
+        spritevid_output_size = _normalize_spritevid_output_size(spritevid_output_size)
         resolved_spritevid_device = select_device(spritevid_device)
         if resolved_spritevid_device.type == "cuda":
             if num_workers != 0:
@@ -159,6 +187,7 @@ def prepare_data(
             persistent_workers=persistent_workers,
             prefetch_factor=prefetch_factor,
             val_size=val_size,
+            output_size=spritevid_output_size,
             seq_len=seq_len,
             num_sequences=num_sequences,
             max_sprites=spritevid_max_sprites,

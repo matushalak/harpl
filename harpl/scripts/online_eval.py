@@ -43,6 +43,9 @@ def online_eval(args,
     """
     # evaluate on test set
     loss = 0.
+    if args.loss in ["lejepa", "lejepa2"]:
+        pred_loss = 0.
+        sig_reg_loss = 0.
     
     if multitask:
         classifier_loss = ({key: 0. for key in num_classes_seq_labels.keys()}, {key: 0. for key in num_classes_dense_labels.keys()})
@@ -73,7 +76,11 @@ def online_eval(args,
             model_output = model(x)  # z, context, pred
             z, context, pred = model_output
             criterion_inputs = get_criterion_input(z, context, pred, y, args.loss, args.online_input, args.prediction_target)
-            loss += criterion(*criterion_inputs)
+            criterion_loss = criterion(*criterion_inputs)
+            loss += criterion_loss
+            if args.loss in ["lejepa", "lejepa2"]:
+                pred_loss += criterion.pred_loss_val.item()
+                sig_reg_loss += criterion.sig_reg_loss_val.item()
 
             classifier_loss_, classifier_acc1_, classifier_acc5_, regression_loss_, regression_r2_ = compute_readout_loss(
                 data=model_output[model_output_idx], 
@@ -140,6 +147,9 @@ def online_eval(args,
         ctx_var = None
         avg_var_over_time_ctx = None
     loss /= len(test_loader)
+    if args.loss in ["lejepa", "lejepa2"]:
+        pred_loss /= len(test_loader)
+        sig_reg_loss /= len(test_loader)
     part_ratio /= len(test_loader)
     part_ratio_context /= len(test_loader)
 
@@ -176,9 +186,9 @@ def online_eval(args,
             _ = log_variable(criterion.pull_loss_val, "Pull loss (val.)", commit=False)
             _ = log_variable(criterion.push_loss_val, "Push loss (val.)", commit=False)
             _ = log_variable(criterion.decorr_loss_val, "Decorrelation loss (val.)", commit=False)
-        elif args.loss == "lejepa":
-            _ = log_variable(criterion.pred_loss_val, "Prediction loss (val.)", commit=False)
-            _ = log_variable(criterion.sig_reg_loss_val, "SigReg loss (val.)", commit=False)
+        elif args.loss in ["lejepa", "lejepa2"]:
+            _ = log_variable(pred_loss, "Prediction loss (val.)", commit=False)
+            _ = log_variable(sig_reg_loss, "SigReg loss (val.)", commit=False)
     else:
         val_acc = dist_reduce_mean(classifier_acc1)
         part_ratio_log = dist_reduce_mean(part_ratio)
@@ -222,6 +232,9 @@ def greedy_online_eval(
         pull_loss_per_layer = torch.zeros(n_areas)
         push_loss_per_layer = torch.zeros(n_areas)
         decorr_loss_per_layer = torch.zeros(n_areas)
+    elif args.loss in ["lejepa", "lejepa2"]:
+        pred_loss_per_layer = torch.zeros(n_areas)
+        sig_reg_loss_per_layer = torch.zeros(n_areas)
     if multitask:
         classifier_loss = [
             ({key: 0. for key in num_classes_seq_labels.keys()}, {key: 0. for key in num_classes_dense_labels.keys()})
@@ -268,6 +281,9 @@ def greedy_online_eval(
                     pull_loss_per_layer[j] += criterion.pull_loss_val
                     push_loss_per_layer[j] += criterion.push_loss_val
                     decorr_loss_per_layer[j] += criterion.decorr_loss_val
+                elif args.loss in ["lejepa", "lejepa2"]:
+                    pred_loss_per_layer[j] += criterion.pred_loss_val.item()
+                    sig_reg_loss_per_layer[j] += criterion.sig_reg_loss_val.item()
 
                 classifier_loss_, classifier_acc1_, classifier_acc5_, regression_loss_, regression_r2_ = compute_readout_loss(
                     data=model_output[model_output_idx][j], 
@@ -323,6 +339,9 @@ def greedy_online_eval(
                 vars_ctx[j] += torch.var(ctx_list[j]).item() / len(test_loader)
     
     loss_per_layer /= len(test_loader)
+    if args.loss in ["lejepa", "lejepa2"]:
+        pred_loss_per_layer /= len(test_loader)
+        sig_reg_loss_per_layer /= len(test_loader)
     part_ratio /= len(test_loader)
     part_ratio_context /= len(test_loader)
 
@@ -357,6 +376,9 @@ def greedy_online_eval(
                 _ = log_variable(pull_loss_per_layer[j], f"Pull loss (val.), area {j}", commit=False)
                 _ = log_variable(push_loss_per_layer[j], f"Push loss (val.), area {j}", commit=False)
                 _ = log_variable(decorr_loss_per_layer[j], f"Decorrelation loss (val.), area {j}", commit=False)
+            elif args.loss in ["lejepa", "lejepa2"]:
+                _ = log_variable(pred_loss_per_layer[j], f"Prediction loss (val.), area {j}", commit=False)
+                _ = log_variable(sig_reg_loss_per_layer[j], f"SigReg loss (val.), area {j}", commit=False)
     else:
         val_acc = dist_reduce_mean(classifier_acc1[j])
         part_ratio_log = dist_reduce_mean(part_ratio[j])

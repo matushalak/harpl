@@ -354,7 +354,7 @@ def main(args, device):
                     log_variable(criterion.pull_loss_val, "Pull loss (train)", commit=False)
                     log_variable(criterion.push_loss_val, "Push loss (train)", commit=False)
                     log_variable(criterion.decorr_loss_val, "Decorr loss (train)", commit=False)
-                elif args.loss == "lejepa":
+                elif args.loss in ["lejepa", "lejepa2"]:
                     log_variable(criterion.pred_loss_val, "Prediction loss (train)", commit=False)
                     log_variable(criterion.sig_reg_loss_val, "SigReg loss (train)", commit=False)
             last_batch_end = time.perf_counter()

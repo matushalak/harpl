@@ -31,6 +31,7 @@ method_names = {
     'pred-mem': 'CL',
     'invZ': r'$\text{IL}^z$',
     'invC': r'$\text{IL}^c$',
+    'lejepa': 'RPL(noSG)+SigReg(z)',
 }
 method_colors = {
     'sup': 'black',

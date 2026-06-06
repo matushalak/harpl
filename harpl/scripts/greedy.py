@@ -268,6 +268,9 @@ def main(args, device):
                 pull_loss_values = torch.zeros(args.n_areas)
                 push_loss_values = torch.zeros(args.n_areas)
                 decorr_loss_values = torch.zeros(args.n_areas)
+            elif args.loss in ["lejepa", "lejepa2"]:
+                pred_loss_values = torch.zeros(args.n_areas)
+                sig_reg_loss_values = torch.zeros(args.n_areas)
             total_loss = 0.0
             if args.freeze:
                 with torch.no_grad():
@@ -283,6 +286,9 @@ def main(args, device):
                         pull_loss_values[j] = criterion.pull_loss_val
                         push_loss_values[j] = criterion.push_loss_val
                         decorr_loss_values[j] = criterion.decorr_loss_val
+                    elif args.loss in ["lejepa", "lejepa2"]:
+                        pred_loss_values[j] = criterion.pred_loss_val.item()
+                        sig_reg_loss_values[j] = criterion.sig_reg_loss_val.item()
                     if not frozen_areas[j]:
                         total_loss += loss
 
@@ -365,6 +371,9 @@ def main(args, device):
                         log_variable(pull_loss_values[j], f"Pull loss, area {j}", commit=False)
                         log_variable(push_loss_values[j], f"Push loss, area {j}", commit=False)
                         log_variable(decorr_loss_values[j], f"Decorr loss, area {j}", commit=False)
+                    elif args.loss in ["lejepa", "lejepa2"]:
+                        log_variable(pred_loss_values[j], f"Prediction loss, area {j}", commit=False)
+                        log_variable(sig_reg_loss_values[j], f"SigReg loss, area {j}", commit=False)
             last_batch_end = time.perf_counter()
             
     # save final model

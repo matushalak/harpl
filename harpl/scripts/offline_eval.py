@@ -425,7 +425,7 @@ def main(args, device):
     preprocess, postprocess = additional_data_process(args.dataset, args.flatten_enc_output)
     n_in_channels = 1 if args.grayscale else 3
 
-    state_dict = torch.load(args.model_path) if args.model_path is not None else None
+    state_dict = torch.load(args.model_path, map_location=device) if args.model_path is not None else None
     model = prepare_model(
         encoder_kind=args.encoder,
         integrator_kind=args.integrator,
@@ -450,7 +450,7 @@ def main(args, device):
         preprocess=preprocess,
         postprocess=postprocess,
         state_dict=state_dict,
-        return_full_features=args.offline_full_spatial_readout,
+        return_full_features=args.offline_full_spatial_readout or args.flatten_enc_output,
         flatten_enc_output=args.flatten_enc_output,
     )
     # if state_dict is not None:

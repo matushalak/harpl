@@ -50,6 +50,16 @@ bash bash_scripts/moving_animals.sh --device cuda --epochs 1 --offline_epochs 1
 bash bash_scripts/hRPL.sh --device cuda --epochs 1 --offline_epochs 1
 ```
 
+To re-run only the moving-animals offline post-training evaluation for existing
+checkpoint(s) and append those metrics to the matching W&B run by checkpoint
+directory name:
+
+```bash
+python -m harpl.scripts.rerun_moving_animals_offline \
+  --device cuda \
+  --checkpoint checkpoints/animals_cts_noiseOnTop0.1_random_1/model_final.pt
+```
+
 TensorBoard logs are written under `runs/<experiment_name>/` when using
 `--logger tensorboard`:
 

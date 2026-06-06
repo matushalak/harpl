@@ -132,6 +132,10 @@ def add_training_args(parser):
 def add_logging_args(parser):
     parser.add_argument("--nolog", action="store_true", help="disable experiment logging")
     parser.add_argument("--logger", choices=["tensorboard", "wandb", "none"], default="wandb", help="experiment logger backend")
+    parser.add_argument("--wandb_project", type=str, default="HARPL", help="Weights & Biases project name")
+    parser.add_argument("--wandb_entity", type=str, default=None, help="Weights & Biases entity/team")
+    parser.add_argument("--wandb_run_id", type=str, default=None, help="Weights & Biases run id to resume")
+    parser.add_argument("--wandb_resume", choices=["allow", "must", "never", "auto"], default=None, help="Weights & Biases resume mode")
     parser.add_argument("--log_dir", type=str, default="runs", help="TensorBoard log root directory")
     parser.add_argument("--experiment_name", type=str, default="default", help="name of the experiment")
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="directory to save checkpoints")

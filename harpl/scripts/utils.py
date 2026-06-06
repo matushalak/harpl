@@ -528,7 +528,20 @@ def init_logger(args):
     _LOGGER_BACKEND = args.logger
     if _LOGGER_BACKEND == "wandb":
         import wandb
-        wandb.init(project="HARPL", name=args.experiment_name, config=args)
+        wandb_kwargs = {
+            "project": getattr(args, "wandb_project", "HARPL"),
+            "name": args.experiment_name,
+            "config": args,
+            "allow_val_change": True,
+        }
+        if getattr(args, "wandb_entity", None):
+            wandb_kwargs["entity"] = args.wandb_entity
+        if getattr(args, "wandb_run_id", None):
+            wandb_kwargs["id"] = args.wandb_run_id
+            wandb_kwargs["resume"] = getattr(args, "wandb_resume", None) or "allow"
+        elif getattr(args, "wandb_resume", None):
+            wandb_kwargs["resume"] = args.wandb_resume
+        wandb.init(**wandb_kwargs)
     elif _LOGGER_BACKEND == "tensorboard":
         from torch.utils.tensorboard import SummaryWriter
         log_dir = os.path.join(args.log_dir, args.experiment_name)
@@ -540,7 +553,7 @@ def init_logger(args):
 
 def close_logger():
     """Flush and close the configured experiment logger."""
-    global _TENSORBOARD_WRITER
+    global _LOGGER_BACKEND, _TENSORBOARD_WRITER
     if _LOGGER_BACKEND == "wandb":
         import wandb
         wandb.finish()
@@ -548,6 +561,7 @@ def close_logger():
         _TENSORBOARD_WRITER.flush()
         _TENSORBOARD_WRITER.close()
         _TENSORBOARD_WRITER = None
+    _LOGGER_BACKEND = "none"
 
 
 atexit.register(close_logger)

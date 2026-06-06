@@ -29,7 +29,7 @@ read -r -a SPRITEVID_OUTPUT_SIZE_ARGS <<< "${HARPL_SPRITEVID_OUTPUT_SIZE:-64}"
     --use_scheduler \
     --lr 3e-4 \
     --batch_size "${HARPL_BATCH_SIZE:-128}" \
-    --num_workers "${HARPL_NUM_WORKERS:-8}" \
+    --num_workers "${HARPL_NUM_WORKERS:-10}" \
     --online_task multitask \
     --online_full_spatial_readout \
     --online_input ctx \

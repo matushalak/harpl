@@ -330,6 +330,8 @@ class SIGReg(torch.nn.Module):
         self.register_buffer("weights", weights * window)
 
     def forward(self, proj):
+        if proj.dim() < 2:
+            raise ValueError(f"SIGReg expects at least 2 dimensions, got shape {tuple(proj.shape)}")
         A = torch.randn(proj.size(-1), 256, device=proj.device)
         A = A.div_(A.norm(p=2, dim=0))
         x_t = (proj @ A).unsqueeze(-1) * self.t
@@ -350,24 +352,51 @@ class LeJEPALoss(Criterion):
                  discount_factor=0.0,
                  dense_prediction=False,
                  pred_loss_type='cosine',
-                 no_sg=True,
+                 no_sg=False,
                  sigreg_lambd_=1.0, 
-                 sigreg_knots=17
+                 sigreg_knots=17,
+                 reg_dim="batch+time",
                  ):
         super().__init__(pred_steps)
         # SigReg removes need for stop-gradient
-        self.L_pred = PredLoss(pred_steps, discount_factor, dense_prediction, pred_loss_type, no_sg=True)
+        self.L_pred = PredLoss(pred_steps, discount_factor, dense_prediction, pred_loss_type, no_sg=no_sg)
         self.L_sig_reg = SIGReg(knots=sigreg_knots)
         self.lambd_ = sigreg_lambd_
+        self.reg_dim = reg_dim
+        self.pred_loss_val = 0.0
+        self.sig_reg_loss_val = 0.0
 
-    def forward(self, pred_target, pred):
-        pred_loss = self.L_pred(pred_target, pred)
-        sig_reg_loss = self.L_sig_reg(pred_target)
-        total_loss = (1 - self.lambd_) * pred_loss + self.lambd_ * sig_reg_loss
+    def _flatten_latent_features(self, latent):
+        if latent.dim() < 3:
+            return latent
+        if latent.dim() > 3:
+            latent = latent.reshape(latent.shape[0], latent.shape[1], -1)
+        return latent
+
+    def _prepare_sigreg_latent(self, latent):
+        latent = self._flatten_latent_features(latent)
+        if latent.dim() == 2:
+            return latent
+        if latent.dim() != 3:
+            raise ValueError(f"LeJEPALoss expects latent shape (B, L, C) or (N, C), got {tuple(latent.shape)}")
+
+        if self.reg_dim == "batch+time":
+            return latent.reshape(-1, latent.shape[-1])
+        if self.reg_dim == "batch":
+            return latent.transpose(0, 1)
+        if self.reg_dim == "time":
+            return latent
+        raise ValueError(f"Unknown regularization dimension: {self.reg_dim}")
+
+    def forward(self, pred_target, pred, latent):
+        self.pred_loss_val = self.L_pred(pred_target, pred)
+        sigreg_latent = self._prepare_sigreg_latent(latent)
+        self.sig_reg_loss_val = self.L_sig_reg(sigreg_latent)
+        total_loss = (1 - self.lambd_) * self.pred_loss_val + self.lambd_ * self.sig_reg_loss_val
         return total_loss
     
     def pred_loss(self, pred_target, pred):
-        return PredLoss.forward(self, pred_target, pred)
+        return self.L_pred(pred_target, pred)
     
     def sig_reg_loss(self, latent):
-        return self.L_sig_reg(latent)
+        return self.L_sig_reg(self._prepare_sigreg_latent(latent))

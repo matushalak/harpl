@@ -275,6 +275,13 @@ def get_criterion_input(z, context, pred, y, loss, downstream_input, prediction_
             raise ValueError(f"Invalid prediction target: {prediction_target}")
         if loss == "inv":
             return (pred_target,)
+        
+        elif loss == "lejepa":
+            return pred_target, pred, z
+        
+        elif loss == "lejepa2":
+            return pred_target, pred, context
+
         else:
             return pred_target, pred
 
@@ -293,7 +300,7 @@ def prepare_criterion(
         pred_loss_type="cosine",
         full_spatial_readout=False,
         no_sg=False,
-        sigreg_lambd_ = 1.0,
+        sigreg_lambd_ = 0.05,
         sigreg_knots = 17):
     """Prepare the loss function (criterion)
 
@@ -337,7 +344,18 @@ def prepare_criterion(
                                pred_loss_type=pred_loss_type,
                                no_sg=True,
                                sigreg_lambd_=sigreg_lambd_,
-                               sigreg_knots=sigreg_knots)
+                               sigreg_knots=sigreg_knots,
+                               reg_dim=regularize_over)
+    elif loss == "lejepa2":
+        criterion = LeJEPALoss(pred_steps=pred_steps, 
+                               discount_factor=discount_factor,
+                               dense_prediction=dense_prediction,
+                               pred_loss_type=pred_loss_type,
+                               no_sg=False,
+                               sigreg_lambd_=sigreg_lambd_,
+                               sigreg_knots=sigreg_knots,
+                               reg_dim=regularize_over)
+    
 
     else:
         raise NotImplementedError(f"Loss {loss} not implemented")

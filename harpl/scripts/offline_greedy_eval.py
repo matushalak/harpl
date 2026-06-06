@@ -59,10 +59,14 @@ def greedy_offline_eval(args, model, num_classes, model_output_idx, seq_len, dev
             val_batch_size=args.offline_batch_size,
             distributed=args.distributed,
             num_workers=args.num_workers,
+            pin_memory=args.pin_memory,
+            persistent_workers=args.persistent_workers,
+            prefetch_factor=args.prefetch_factor,
             grayscale=args.grayscale,
             target_label=args.offline_task,
             mnist_seqtype=args.mnist_seqtype,
             spritevid_max_sprites=args.spritevid_max_sprites,
+            spritevid_output_size=args.spritevid_output_size,
             spritevid_exclude_latent_regions=False, # we make sure to train the readout on the full latent space
             spritevid_discretize_latents=args.spritevid_discretize_latents,
             spritevid_noise_type=args.spritevid_noise_type,
@@ -72,6 +76,7 @@ def greedy_offline_eval(args, model, num_classes, model_output_idx, seq_len, dev
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
         )
 
@@ -520,6 +525,7 @@ def main(args, device):
                                              target_label=args.offline_task,
                                              mnist_seqtype=args.mnist_seqtype,
                                              spritevid_num_sprites=args.spritevid_max_sprites,
+                                             spritevid_output_size=args.spritevid_output_size,
                                              flatten_images=args.flatten_images,)
     
     seq_len = args.seq_len
@@ -591,6 +597,8 @@ if __name__ == "__main__":
     add_ddp_args(parser)
     args = parser.parse_args()
 
+    if args.offline_task == "none":
+        args.offline_task = None
     if args.offline_task is None:
         raise ValueError("Please specify the task for offline evaluation")
 

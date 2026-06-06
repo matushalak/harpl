@@ -18,10 +18,49 @@ _PENDING_LOGS = {}
 _LOG_STEP = 0
 
 
+def is_cuda_device(device):
+    if isinstance(device, int):
+        return torch.cuda.is_available()
+    try:
+        return torch.device(device).type == "cuda"
+    except (RuntimeError, TypeError):
+        return False
+
+
+def cuda_memory_stats(device):
+    if not is_cuda_device(device):
+        return {}
+    device = torch.device(device) if not isinstance(device, int) else device
+    return {
+        "GPU/memory_allocated_gb": torch.cuda.memory_allocated(device) / 1e9,
+        "GPU/memory_reserved_gb": torch.cuda.memory_reserved(device) / 1e9,
+        "GPU/max_memory_allocated_gb": torch.cuda.max_memory_allocated(device) / 1e9,
+    }
+
+
+def _normalize_spritevid_output_size(output_size):
+    if isinstance(output_size, int):
+        return (output_size, output_size)
+    if isinstance(output_size, str):
+        output_size = [int(output_size)]
+    else:
+        output_size = list(output_size)
+    if len(output_size) == 1:
+        height = width = output_size[0]
+    elif len(output_size) == 2:
+        height, width = output_size
+    else:
+        raise ValueError("--spritevid_output_size expects one value or two values: height width.")
+    if height <= 0 or width <= 0:
+        raise ValueError("--spritevid_output_size values must be positive.")
+    return (height, width)
+
+
 def get_data_specs(dataset, 
                    target_label=None, 
                    mnist_seqtype=None,
                    spritevid_num_sprites=None,
+                   spritevid_output_size=(64, 64),
                    flatten_images=False):
     f"""Get the data specifications for the specified dataset.
     
@@ -47,7 +86,13 @@ def get_data_specs(dataset,
             raise ValueError(f"Invalid sequence type: {mnist_seqtype}")
         input_size = 28 * 28 if flatten_images else 28
     elif dataset == "animals":
-        input_size = 64 * 64 if flatten_images else 64
+        height, width = _normalize_spritevid_output_size(spritevid_output_size)
+        if flatten_images and height != width:
+            input_size = height * width
+        elif height != width:
+            raise ValueError("Non-square SpriteVideo output sizes require --flatten_images.")
+        else:
+            input_size = height * height if flatten_images else height
         num_classes = ({"sprite_idx": spritevid_num_sprites, "rotation_direction": 3},
                        {"x-direction": 3, "y-direction": 3, "z-direction": 3, "x-position (discr)": 33, "y-position (discr)": 33, "z-position (discr)": 17, "orientation": 36},
                        {"speed": 1, "rotation_speed": 1},
@@ -67,9 +112,13 @@ def prepare_data(
         val_batch_size=128, 
         target_label="seq2label",
         num_workers=8,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
         grayscale=False,
         mnist_seqtype=None,
         spritevid_max_sprites=16,
+        spritevid_output_size=(64, 64),
         spritevid_exclude_latent_regions=False,
         spritevid_discretize_latents=False,
         spritevid_noise_type=None,
@@ -79,6 +128,7 @@ def prepare_data(
         spritevid_grid_enabled=False,
         spritevid_frozen_grid=False,
         spritevid_occlude_n_frames=0,
+        spritevid_device="cpu",
         num_sequences=10000,
         inter_trial_interval=0,
         ):
@@ -94,9 +144,13 @@ def prepare_data(
         val_batch_size (int): The validation batch size.
         target_label (str): The target label for the dataset.
         num_workers (int): The number of workers for the data loader.
+        pin_memory (bool): Whether to pin DataLoader host memory.
+        persistent_workers (bool): Whether DataLoader workers persist across epochs.
+        prefetch_factor (int): Number of batches prefetched per DataLoader worker.
         grayscale (bool): Whether to load the data in grayscale.
         mnist_seqtype (str): The sequence type for the dataset (only for MNIST, FashionMNIST).
         spritevid_max_sprites (int): The maximum number of sprites (only for sprite videos).
+        spritevid_output_size (tuple[int, int]): SpriteVideo output size as height, width.
         spritevid_exclude_latent_regions (bool): Whether to exclude latent regions during training to test generalization (only for sprite videos).
         spritevid_discretize_latents (bool): Whether to discretize latents (only for sprite videos).
         spritevid_noise_type (str): The noise type (only for sprite videos).
@@ -106,6 +160,7 @@ def prepare_data(
         spritevid_grid_enabled (bool): Whether to use grid (only for sprite videos).
         spritevid_frozen_grid (bool): Whether to use frozen grid (only for sprite videos).
         spritevid_occlude_n_frames (int): The number of frames to occlude (only for sprite videos).
+        spritevid_device (str): The device used for SpriteVideo rendering.
         num_sequences (int): The number of sequences (only for MNIST, FashionMNIST).
         inter_trial_interval (int): The inter-trial interval (only for MNIST, FashionMNIST).
 
@@ -118,10 +173,21 @@ def prepare_data(
         torch.utils.data.Sampler: The test sampler.
     """
     if dataset == "animals":
+        spritevid_output_size = _normalize_spritevid_output_size(spritevid_output_size)
+        resolved_spritevid_device = select_device(spritevid_device)
+        if resolved_spritevid_device.type == "cuda":
+            if num_workers != 0:
+                raise ValueError("CUDA SpriteVideo rendering requires --num_workers 0.")
+            if pin_memory:
+                raise ValueError("CUDA SpriteVideo rendering returns CUDA tensors; use --no-pin-memory.")
         dataloader = SpriteVideoDataLoader(
             data_dir=data_input_dir,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             val_size=val_size,
+            output_size=spritevid_output_size,
             seq_len=seq_len,
             num_sequences=num_sequences,
             max_sprites=spritevid_max_sprites,
@@ -136,6 +202,7 @@ def prepare_data(
             sprite_imgs=dataset,
             grayscale=grayscale,
             occlude_n_frames=spritevid_occlude_n_frames,
+            device=resolved_spritevid_device,
         )
         train_loader, train_sampler = dataloader.get_train(batch_size)
         val_loader, val_sampler = dataloader.get_validation(val_batch_size)
@@ -144,6 +211,9 @@ def prepare_data(
         dataloader = ImageSequencesDataLoader(
             data_dir=data_input_dir,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             seq_len=seq_len,
             seq_type=mnist_seqtype,
             num_sequences=num_sequences,

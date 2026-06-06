@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-python -m harpl.scripts.cli \
+read -r -a SPRITEVID_OUTPUT_SIZE_ARGS <<< "${HARPL_SPRITEVID_OUTPUT_SIZE:-64}"
+
+"${PYTHON:-python}" -m harpl.scripts.cli \
     --dataset animals \
     --spritevid_max_sprites 8 \
     --spritevid_noise_type gaussian \
     --spritevid_noise_level 0.1 \
+    --spritevid_output_size "${SPRITEVID_OUTPUT_SIZE_ARGS[@]}" \
     --sprite_noise_on_top \
     --seq_len 32 \
     --num_sequences "${HARPL_NUM_SEQUENCES:-16000}" \
@@ -21,7 +24,7 @@ python -m harpl.scripts.cli \
     --predictor mlp \
     --pred_hidden_dim 512 \
     --pred_steps 1 \
-    --checkpoint_every "${HARPL_CHECKPOINT_EVERY:-25}" \
+    --checkpoint_every "${HARPL_CHECKPOINT_EVERY:-50}" \
     --epochs "${HARPL_EPOCHS:-500}" \
     --use_scheduler \
     --lr 3e-4 \
@@ -38,4 +41,6 @@ python -m harpl.scripts.cli \
     --offline_batch_size "${HARPL_OFFLINE_BATCH_SIZE:-128}" \
     --offline_epochs "${HARPL_OFFLINE_EPOCHS:-250}" \
     --save_offline_readout \
+    --sigreg_lambd_ 0.05 \
+    --sigreg_knots 17 \
     --use_sklearn_regression $@

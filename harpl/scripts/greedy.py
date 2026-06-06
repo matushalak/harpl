@@ -1,6 +1,7 @@
 import argparse
 from copy import deepcopy
 import os
+import time
 
 import torch
 import torch.distributed as dist
@@ -19,6 +20,7 @@ from harpl.scripts.args import (
     add_reproducibility_args, 
     add_training_args, 
     add_validation_args, 
+    check_args,
 )
 from harpl.scripts.eval_utils import compute_readout_loss, prepare_readout
 from harpl.scripts.online_eval import greedy_online_eval
@@ -29,6 +31,8 @@ from harpl.scripts.utils import (
     get_rank,
     init_logger,
     init_distributed,
+    cuda_memory_stats,
+    is_cuda_device,
     log_variable,
     prepare_criterion,
     prepare_data,
@@ -48,6 +52,7 @@ def main(args, device):
                                              target_label=args.online_task,
                                              mnist_seqtype=args.mnist_seqtype,
                                              spritevid_num_sprites=args.spritevid_max_sprites,
+                                             spritevid_output_size=args.spritevid_output_size,
                                              flatten_images=args.flatten_images,)
     
     num_classes_seq_labels = num_classes[0] if multitask else None
@@ -66,15 +71,20 @@ def main(args, device):
     ) = prepare_data(
             args.dataset,
             args.data_input_dir,
+            val_size=args.val_size,
             seq_len=seq_len,
             batch_size=args.batch_size,
             val_batch_size=args.val_batch_size,
             distributed=args.distributed,
             num_workers=args.num_workers,
+            pin_memory=args.pin_memory,
+            persistent_workers=args.persistent_workers,
+            prefetch_factor=args.prefetch_factor,
             grayscale=args.grayscale,
             target_label=args.online_task,
             mnist_seqtype=args.mnist_seqtype,
             spritevid_max_sprites=args.spritevid_max_sprites,
+            spritevid_output_size=args.spritevid_output_size,
             spritevid_exclude_latent_regions=args.spritevid_exclude_latent_regions,
             spritevid_discretize_latents=args.spritevid_discretize_latents,
             spritevid_noise_type=args.spritevid_noise_type,
@@ -84,6 +94,7 @@ def main(args, device):
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
         )
     
@@ -201,6 +212,7 @@ def main(args, device):
     # vector dims for logging norms
     vector_dims = -1
 
+    non_blocking = args.pin_memory and is_cuda_device(device)
     for epoch in range(args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
@@ -237,13 +249,16 @@ def main(args, device):
             )
 
         # train
+        last_batch_end = time.perf_counter()
         for i, (x, y) in enumerate(tqdm(train_loader)):
-            x = x.to(device) # (B, C, H, W)
+            data_time = time.perf_counter() - last_batch_end
+            step_start = time.perf_counter()
+            x = x.to(device, non_blocking=non_blocking) # (B, C, H, W)
             if multitask:
-                y = tuple([yi.to(device) for yi in y])
+                y = tuple([yi.to(device, non_blocking=non_blocking) for yi in y])
                 target_length = None
             else:
-                y = y.to(device)
+                y = y.to(device, non_blocking=non_blocking)
                 # if task is seq2seq classification (e.g. phone), y.shape = (B, L); otherwise y.shape = (B,)
                 target_length = y.shape[1] if len(y.shape) == 2 else y.shape[0]
             
@@ -311,11 +326,20 @@ def main(args, device):
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
+            if is_cuda_device(device):
+                torch.cuda.synchronize(device)
+            step_time = time.perf_counter() - step_start
+            samples_per_sec = x.shape[0] / step_time if step_time > 0 else 0.0
 
             # log to wandb
             if not args.nolog:
                 safe_barrier()
                 z_list, ctx_list, pred_list = model_outputs
+                log_variable(data_time, "Timing/data_sec", commit=False)
+                log_variable(step_time, "Timing/step_sec", commit=False)
+                log_variable(samples_per_sec, "Timing/samples_per_sec", commit=False)
+                for metric_name, metric_value in cuda_memory_stats(device).items():
+                    log_variable(metric_value, metric_name, commit=False)
                 for j in range(args.n_areas):
                     log_variable(loss_values[j], f"Train loss, area {j}", commit=False)
                     if multitask:
@@ -341,6 +365,7 @@ def main(args, device):
                         log_variable(pull_loss_values[j], f"Pull loss, area {j}", commit=False)
                         log_variable(push_loss_values[j], f"Push loss, area {j}", commit=False)
                         log_variable(decorr_loss_values[j], f"Decorr loss, area {j}", commit=False)
+            last_batch_end = time.perf_counter()
             
     # save final model
     if get_rank() == 0 and args.checkpoint_dir is not None:
@@ -404,4 +429,5 @@ if __name__ == "__main__":
 
     init_logger(args)
 
+    check_args(args)
     main(args, device)

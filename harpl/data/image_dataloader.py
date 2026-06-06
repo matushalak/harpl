@@ -15,6 +15,9 @@ class ImageDataLoader:
         data_dir,
         grayscale=False,
         num_workers=16,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
         augmentations=None,
         **kwargs,
     ):
@@ -22,6 +25,9 @@ class ImageDataLoader:
         self.data_dir = data_dir
         self.grayscale = grayscale
         self.num_workers = num_workers
+        self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
+        self.prefetch_factor = prefetch_factor
         self.augmentations = augmentations or {}
         self._dataset_kwargs = kwargs
         self._train_subset = "train"
@@ -52,14 +58,19 @@ class ImageDataLoader:
         }
 
     def _get_loader(self, split, batch_size, shuffle, sampler=None):
-        return torch.utils.data.DataLoader(
-            self.datasets[split],
-            batch_size=batch_size,
-            shuffle=shuffle and sampler is None,
-            sampler=sampler,
-            num_workers=self.num_workers,
-            drop_last=True,
-        ), sampler
+        loader_kwargs = {
+            "batch_size": batch_size,
+            "shuffle": shuffle and sampler is None,
+            "sampler": sampler,
+            "num_workers": self.num_workers,
+            "drop_last": True,
+            "pin_memory": self.pin_memory,
+        }
+        if self.num_workers > 0:
+            loader_kwargs["persistent_workers"] = self.persistent_workers
+            if self.prefetch_factor is not None:
+                loader_kwargs["prefetch_factor"] = self.prefetch_factor
+        return torch.utils.data.DataLoader(self.datasets[split], **loader_kwargs), sampler
 
     def get_train(self, batch_size, sampler=None):
         return self._get_loader(self._train_subset, batch_size=batch_size, shuffle=True, sampler=sampler)
@@ -78,6 +89,9 @@ class ImageSequencesDataLoader(ImageDataLoader):
         self,
         data_dir,
         num_workers=16,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
         augmentations=None,
         val_size=0.1,
         seq_type="triplets",
@@ -89,6 +103,9 @@ class ImageSequencesDataLoader(ImageDataLoader):
             dataset=MNISTSequencesDataset,
             data_dir=data_dir,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             augmentations=augmentations,
             seq_type=seq_type,
             seq_len=seq_len,
@@ -114,6 +131,9 @@ class SpriteVideoDataLoader(ImageDataLoader):
         self,
         data_dir,
         num_workers=16,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
         augmentations=None,
         val_size=0.1,
         output_size=(64, 64),
@@ -133,12 +153,16 @@ class SpriteVideoDataLoader(ImageDataLoader):
         sprite_imgs="animals",
         grayscale=False,
         occlude_n_frames=0,
+        device="cpu",
     ):
         super().__init__(
             dataset=SpriteVideoDataset,
             data_dir=data_dir,
             grayscale=grayscale,
             num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            prefetch_factor=prefetch_factor,
             augmentations=augmentations,
             output_size=output_size,
             seq_len=seq_len,
@@ -155,6 +179,7 @@ class SpriteVideoDataLoader(ImageDataLoader):
             grid_enabled=grid_enabled,
             freeze_grid=frozen_grid,
             occlude_n_frames=occlude_n_frames,
+            device=device,
         )
         self.exclude_latent_regions = exclude_latent_regions
         self.grayscale = grayscale

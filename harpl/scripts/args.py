@@ -1,6 +1,7 @@
 from harpl.data._valid_names_lists import DATASET_NAMES, MNIST_SEQTYPES
 from harpl.networks._valid_names_lists import ENCODER_NAMES, INTEGRATOR_NAMES, PREDICTOR_NAMES
 from harpl.modules._valid_names_lists import LOSS_NAMES
+import argparse
 
 
 def add_reproducibility_args(parser):
@@ -90,11 +91,15 @@ def add_data_args(parser):
     parser.add_argument("--val_size", type=float, default=0.0, help="validation size")
     parser.add_argument("--data_input_dir", type=str, default="datasets", help="path to the data directory")
     parser.add_argument("--num_workers", type=int, default=8, help="number of workers for data loading")
+    parser.add_argument("--pin-memory", "--pin_memory", dest="pin_memory", action=argparse.BooleanOptionalAction, default=True, help="pin DataLoader host memory for faster CUDA transfers")
+    parser.add_argument("--persistent-workers", "--persistent_workers", dest="persistent_workers", action=argparse.BooleanOptionalAction, default=True, help="keep DataLoader workers alive between epochs")
+    parser.add_argument("--prefetch-factor", "--prefetch_factor", dest="prefetch_factor", type=int, default=2, help="batches prefetched per DataLoader worker")
     parser.add_argument("--seq_len", type=int, default=None, help="sequence length")
     parser.add_argument("--grayscale", action="store_true", help="use grayscale images")
     parser.add_argument("--flatten_images", action="store_true", help="flatten images (only applies to small image datasets)")
     parser.add_argument("--mnist_seqtype", choices=MNIST_SEQTYPES, default="triplets", help="sequence type for MNIST datasets")
     parser.add_argument("--spritevid_max_sprites", type=int, default=16, help="maximum number of sprites in the SpriteVideo dataset")
+    parser.add_argument("--spritevid_output_size", type=int, nargs="+", default=[64], help="SpriteVideo output resolution. Pass one value for square frames, e.g. 96. Two values are height width and require --flatten_images unless square.")
     parser.add_argument("--spritevid_exclude_latent_regions", action="store_true", help="exclude latent regions during training for the SpriteVideo dataset (for testing generalization)")
     parser.add_argument("--spritevid_discretize_latents", action="store_true", help="discretize latents for the SpriteVideo dataset")
     parser.add_argument("--spritevid_noise_type", choices=["gaussian", "salt_pepper"], default=None, help="noise type for the SpriteVideo dataset")
@@ -104,6 +109,7 @@ def add_data_args(parser):
     parser.add_argument("--spritevid_grid_enabled", action="store_true", help="enable grid for the SpriteVideo dataset")
     parser.add_argument("--spritevid_frozen_grid", action="store_true", help="freeze grid across frames for the SpriteVideo dataset")
     parser.add_argument("--spritevid_occlude_n_frames", type=int, default=0, help="number of frames to occlude in the SpriteVideo dataset")
+    parser.add_argument("--spritevid_device", type=str, default="cpu", help="device used to render SpriteVideo batches: cpu, cuda, cuda:0, or auto")
     parser.add_argument("--num_sequences", type=int, default=10000, help="number of sequences for MNIST dataset")
     parser.add_argument("--inter_trial_interval", type=int, default=0, help="inter-trial interval (only for MNIST dataset)")
     parser.add_argument("--device", type=str, default="auto", help="device to use: auto, cpu, cuda, cuda:0, or mps")
@@ -141,7 +147,7 @@ def add_criterion_args(parser):
     parser.add_argument("--decorr_coef", type=float, default=10.0, help="decorrelation coefficient")
     parser.add_argument("--pred_loss_type", choices=["cosine", "l2"], default="l2", help="predictor loss type (only used for Pred loss)")
     parser.add_argument("--no_sg", action="store_true", help="do not use stop-gradient for the target network (only applies to non-contrastive SSL losses)")
-    parser.add_argument("--sigreg_lambd_", type=float, default=1.0, help="weight of the SigReg regularization term (only applies to LeJEPALoss)")
+    parser.add_argument("--sigreg_lambd_", type=float, default=0.5, help="weight of the SigReg regularization term (only applies to LeJEPALoss)")
     parser.add_argument("--sigreg_knots", type=int, default=17, help="number of knots for the SIGReg regularization (only applies to LeJEPALoss)")
 
 
@@ -156,13 +162,14 @@ def add_online_eval_args(parser):
     parser.add_argument("--online_lr", type=float, default=1e-3, help="learning rate for online evaluation")
     parser.add_argument("--online_weight_decay", type=float, default=1e-5, help="weight decay for online evaluation")
     parser.add_argument("--online_eval_every", type=int, default=1, help="run online validation every N epochs; set to 0 to skip per-epoch online validation")
+    parser.add_argument("--skip_final_eval", action="store_true", help="skip final online validation after training")
     parser.add_argument("--online_single_timestep_readout", action="store_true", help="use single timestep readout for online evaluation (only applies to online input 'pred' when dense prediction is used)")
     parser.add_argument("--online_full_spatial_readout", action="store_true", help="use full spatial readout for online evaluation")
     parser.add_argument("--save_online_readout", action="store_true", help="save the online readout weights")
     
 
 def add_offline_eval_args(parser):
-    parser.add_argument("--offline_task", choices=["seq2label", "seq2seq", "multitask"], default=None, help="evaluate offline on a classification task")
+    parser.add_argument("--offline_task", choices=["none", "seq2label", "seq2seq", "multitask"], default=None, help="evaluate offline on a classification task")
     parser.add_argument("--offline_input", choices=["enc", "ctx", "pred"], default="enc", help="input to the offline classifier")
     parser.add_argument("--offline_batch_size", type=int, default=128, help="batch size for offline evaluation")
     parser.add_argument("--offline_lr", type=float, default=1e-3, help="learning rate for offline evaluation")
@@ -179,7 +186,7 @@ def add_offline_eval_args(parser):
 def add_ddp_args(parser):
     parser.add_argument("--distributed", action="store_true", help="use distributed training")
     parser.add_argument("--distribute_data", action="store_true", help="distribute data minibatches across nodes")
-    parser.add_argument("--dist_backend", type=str, default="gloo", help="distributed backend")
+    parser.add_argument("--dist_backend", type=str, default="nccl", help="distributed backend")
     parser.add_argument("--dist_url", type=str, default="env://", help="distributed url")
     # parser.add_argument("--local_world_size", type=int, default=2, help="number of nodes for distributed training")
     parser.add_argument("--local-rank", type=int, default=0, help="node rank for distributed training")

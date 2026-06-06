@@ -1,6 +1,7 @@
 import argparse
 from copy import deepcopy
 import os
+import time
 
 import torch
 import torch.distributed as dist
@@ -15,6 +16,8 @@ from harpl.scripts.utils import (
     get_rank,
     init_logger,
     init_distributed,
+    cuda_memory_stats,
+    is_cuda_device,
     prepare_model_optimization,
     seed_everything,
     prepare_data,
@@ -55,6 +58,7 @@ def main(args, device):
                                              target_label=args.online_task,
                                              mnist_seqtype=args.mnist_seqtype,
                                              spritevid_num_sprites=args.spritevid_max_sprites,
+                                             spritevid_output_size=args.spritevid_output_size,
                                              flatten_images=args.flatten_images,)
     
     num_classes_seq_labels = num_classes[0] if multitask else None
@@ -70,15 +74,20 @@ def main(args, device):
     ) = prepare_data(
             args.dataset,
             args.data_input_dir,
+            val_size=args.val_size,
             seq_len=seq_len,
             batch_size=args.batch_size,
             val_batch_size=args.val_batch_size,
             distributed=args.distributed,
             num_workers=args.num_workers,
+            pin_memory=args.pin_memory,
+            persistent_workers=args.persistent_workers,
+            prefetch_factor=args.prefetch_factor,
             grayscale=args.grayscale,
             target_label=args.online_task,
             mnist_seqtype=args.mnist_seqtype,
             spritevid_max_sprites=args.spritevid_max_sprites,
+            spritevid_output_size=args.spritevid_output_size,
             spritevid_exclude_latent_regions=args.spritevid_exclude_latent_regions,
             spritevid_discretize_latents=args.spritevid_discretize_latents,
             spritevid_noise_type=args.spritevid_noise_type,
@@ -88,6 +97,7 @@ def main(args, device):
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
             inter_trial_interval=args.inter_trial_interval,
         )
@@ -201,6 +211,7 @@ def main(args, device):
     vector_dims = -1
 
     # train loop
+    non_blocking = args.pin_memory and is_cuda_device(device)
     for epoch in range(args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
@@ -243,14 +254,17 @@ def main(args, device):
                         num_regression_dense_targets=num_regression_dense_targets)
 
         # train
+        last_batch_end = time.perf_counter()
         for i, (x, y) in enumerate(tqdm(train_loader)):
+            data_time = time.perf_counter() - last_batch_end
+            step_start = time.perf_counter()
             # move to device
-            x = x.to(device)
+            x = x.to(device, non_blocking=non_blocking)
             if multitask:
-                y = tuple([yi.to(device) for yi in y])
+                y = tuple([yi.to(device, non_blocking=non_blocking) for yi in y])
                 target_length = None
             else:
-                y = y.to(device)
+                y = y.to(device, non_blocking=non_blocking)
                 # if task is seq2seq classification (e.g. phone), y.shape = (B, L); otherwise y.shape = (B,)
                 target_length = y.shape[1] if len(y.shape) == 2 else y.shape[0]
             
@@ -302,11 +316,20 @@ def main(args, device):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if is_cuda_device(device):
+                torch.cuda.synchronize(device)
+            step_time = time.perf_counter() - step_start
+            samples_per_sec = x.shape[0] / step_time if step_time > 0 else 0.0
             
             # log to wandb
             if not args.nolog:
                 safe_barrier()
                 z, context, pred = model_output
+                log_variable(data_time, "Timing/data_sec", commit=False)
+                log_variable(step_time, "Timing/step_sec", commit=False)
+                log_variable(samples_per_sec, "Timing/samples_per_sec", commit=False)
+                for metric_name, metric_value in cuda_memory_stats(device).items():
+                    log_variable(metric_value, metric_name, commit=False)
                 log_variable(loss_val, "Train loss", commit=False)
                 if multitask:
                     if num_classes_seq_labels is not None:
@@ -331,6 +354,10 @@ def main(args, device):
                     log_variable(criterion.pull_loss_val, "Pull loss (train)", commit=False)
                     log_variable(criterion.push_loss_val, "Push loss (train)", commit=False)
                     log_variable(criterion.decorr_loss_val, "Decorr loss (train)", commit=False)
+                elif args.loss == "lejepa":
+                    log_variable(criterion.pred_loss_val, "Prediction loss (train)", commit=False)
+                    log_variable(criterion.sig_reg_loss_val, "SigReg loss (train)", commit=False)
+            last_batch_end = time.perf_counter()
     
     # save final model
     if get_rank() == 0 and args.checkpoint_dir is not None:
@@ -340,21 +367,22 @@ def main(args, device):
             torch.save(readout.state_dict(), os.path.join(checkpoint_dir, f"online_{args.online_input}_readout.pt"))
 
     # final evaluation
-    online_eval(args, 
-                model=model, 
-                readout=readout, 
-                test_loader=val_loader, 
-                criterion=criterion, 
-                classifier_criterion=classifier_criterion, 
-                regression_criterion=regression_criterion,
-                device=device, 
-                epoch=epoch+1, 
-                model_output_idx=model_output_idx, 
-                multitask=multitask, 
-                num_classes_seq_labels=num_classes_seq_labels, 
-                num_classes_dense_labels=num_classes_dense_labels,
-                num_regression_targets=num_regression_targets,
-                num_regression_dense_targets=num_regression_dense_targets)
+    if not args.skip_final_eval:
+        online_eval(args,
+                    model=model,
+                    readout=readout,
+                    test_loader=val_loader,
+                    criterion=criterion,
+                    classifier_criterion=classifier_criterion,
+                    regression_criterion=regression_criterion,
+                    device=device,
+                    epoch=epoch+1,
+                    model_output_idx=model_output_idx,
+                    multitask=multitask,
+                    num_classes_seq_labels=num_classes_seq_labels,
+                    num_classes_dense_labels=num_classes_dense_labels,
+                    num_regression_targets=num_regression_targets,
+                    num_regression_dense_targets=num_regression_dense_targets)
     
     # get index for model output to use for offline evaluation
     if args.offline_task is not None:

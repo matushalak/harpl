@@ -102,6 +102,7 @@ def prepare_data(
         spritevid_grid_enabled=False,
         spritevid_frozen_grid=False,
         spritevid_occlude_n_frames=0,
+        spritevid_device="cpu",
         num_sequences=10000,
         inter_trial_interval=0,
         ):
@@ -132,6 +133,7 @@ def prepare_data(
         spritevid_grid_enabled (bool): Whether to use grid (only for sprite videos).
         spritevid_frozen_grid (bool): Whether to use frozen grid (only for sprite videos).
         spritevid_occlude_n_frames (int): The number of frames to occlude (only for sprite videos).
+        spritevid_device (str): The device used for SpriteVideo rendering.
         num_sequences (int): The number of sequences (only for MNIST, FashionMNIST).
         inter_trial_interval (int): The inter-trial interval (only for MNIST, FashionMNIST).
 
@@ -144,6 +146,12 @@ def prepare_data(
         torch.utils.data.Sampler: The test sampler.
     """
     if dataset == "animals":
+        resolved_spritevid_device = select_device(spritevid_device)
+        if resolved_spritevid_device.type == "cuda":
+            if num_workers != 0:
+                raise ValueError("CUDA SpriteVideo rendering requires --num_workers 0.")
+            if pin_memory:
+                raise ValueError("CUDA SpriteVideo rendering returns CUDA tensors; use --no-pin-memory.")
         dataloader = SpriteVideoDataLoader(
             data_dir=data_input_dir,
             num_workers=num_workers,
@@ -165,6 +173,7 @@ def prepare_data(
             sprite_imgs=dataset,
             grayscale=grayscale,
             occlude_n_frames=spritevid_occlude_n_frames,
+            device=resolved_spritevid_device,
         )
         train_loader, train_sampler = dataloader.get_train(batch_size)
         val_loader, val_sampler = dataloader.get_validation(val_batch_size)

@@ -182,6 +182,9 @@ def offline_eval(args, model, num_classes, model_output_idx, seq_len, device, in
             val_batch_size=args.offline_batch_size,
             distributed=args.distributed,
             num_workers=args.num_workers,
+            pin_memory=args.pin_memory,
+            persistent_workers=args.persistent_workers,
+            prefetch_factor=args.prefetch_factor,
             grayscale=args.grayscale,
             target_label=args.offline_task,
             mnist_seqtype=args.mnist_seqtype,
@@ -195,6 +198,7 @@ def offline_eval(args, model, num_classes, model_output_idx, seq_len, device, in
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
             inter_trial_interval=args.inter_trial_interval,
         )

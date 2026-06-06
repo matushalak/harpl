@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-python -m harpl.scripts.cli \
+"${PYTHON:-python}" -m harpl.scripts.cli \
     --dataset animals \
     --spritevid_max_sprites 8 \
     --spritevid_noise_type gaussian \

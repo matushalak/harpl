@@ -153,6 +153,7 @@ class SpriteVideoDataLoader(ImageDataLoader):
         sprite_imgs="animals",
         grayscale=False,
         occlude_n_frames=0,
+        device="cpu",
     ):
         super().__init__(
             dataset=SpriteVideoDataset,
@@ -178,6 +179,7 @@ class SpriteVideoDataLoader(ImageDataLoader):
             grid_enabled=grid_enabled,
             freeze_grid=frozen_grid,
             occlude_n_frames=occlude_n_frames,
+            device=device,
         )
         self.exclude_latent_regions = exclude_latent_regions
         self.grayscale = grayscale

@@ -92,6 +92,7 @@ def main(args, device):
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
         )
     

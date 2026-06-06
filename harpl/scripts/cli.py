@@ -95,6 +95,7 @@ def main(args, device):
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
             inter_trial_interval=args.inter_trial_interval,
         )
@@ -364,21 +365,22 @@ def main(args, device):
             torch.save(readout.state_dict(), os.path.join(checkpoint_dir, f"online_{args.online_input}_readout.pt"))
 
     # final evaluation
-    online_eval(args, 
-                model=model, 
-                readout=readout, 
-                test_loader=val_loader, 
-                criterion=criterion, 
-                classifier_criterion=classifier_criterion, 
-                regression_criterion=regression_criterion,
-                device=device, 
-                epoch=epoch+1, 
-                model_output_idx=model_output_idx, 
-                multitask=multitask, 
-                num_classes_seq_labels=num_classes_seq_labels, 
-                num_classes_dense_labels=num_classes_dense_labels,
-                num_regression_targets=num_regression_targets,
-                num_regression_dense_targets=num_regression_dense_targets)
+    if not args.skip_final_eval:
+        online_eval(args,
+                    model=model,
+                    readout=readout,
+                    test_loader=val_loader,
+                    criterion=criterion,
+                    classifier_criterion=classifier_criterion,
+                    regression_criterion=regression_criterion,
+                    device=device,
+                    epoch=epoch+1,
+                    model_output_idx=model_output_idx,
+                    multitask=multitask,
+                    num_classes_seq_labels=num_classes_seq_labels,
+                    num_classes_dense_labels=num_classes_dense_labels,
+                    num_regression_targets=num_regression_targets,
+                    num_regression_dense_targets=num_regression_dense_targets)
     
     # get index for model output to use for offline evaluation
     if args.offline_task is not None:

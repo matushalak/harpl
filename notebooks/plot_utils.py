@@ -31,6 +31,7 @@ method_names = {
     'pred-mem': 'CL',
     'invZ': r'$\text{IL}^z$',
     'invC': r'$\text{IL}^c$',
+    'lejepa': 'RPL+SigReg(z)',
 }
 method_colors = {
     'sup': 'black',
@@ -42,6 +43,7 @@ method_colors = {
     'pred-mem': '#004488',
     'invZ': '#e28f5a',
     'invC': '#5aade2',
+    'lejepa': 'green',
 }
 baseline_styles = {'sup': ('black', '-'), 'rand': ('gray', '--'), 'raw': ('#7B1FA2', ':')}
 true_var_names = [r'$r_1$', r'$r_2$', r'$r_3$',

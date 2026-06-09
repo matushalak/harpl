@@ -20,7 +20,6 @@ from harpl.scripts.args import (
     add_reproducibility_args, 
     add_training_args, 
     add_validation_args, 
-    check_args,
 )
 from harpl.scripts.eval_utils import compute_readout_loss, prepare_readout
 from harpl.scripts.online_eval import greedy_online_eval
@@ -41,6 +40,19 @@ from harpl.scripts.utils import (
     select_device,
     seed_everything
 )
+
+
+def check_greedy_args(args):
+    """Minimal validation for the hierarchical/greedy parser.
+
+    The flat RePL validator expects non-hierarchical names such as
+    ``args.predictor``. hRPL follows the original greedy entrypoint and uses
+    area-scoped names such as ``args.area_predictors_kind`` instead.
+    """
+    if getattr(args, "offline_task", None) == "none":
+        args.offline_task = None
+    if getattr(args, "online_eval_every", 1) < 0:
+        raise ValueError("--online_eval_every must be >= 0")
 
 
 def main(args, device):
@@ -438,5 +450,5 @@ if __name__ == "__main__":
 
     init_logger(args)
 
-    check_args(args)
+    check_greedy_args(args)
     main(args, device)

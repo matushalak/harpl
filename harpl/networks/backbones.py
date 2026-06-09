@@ -167,7 +167,7 @@ class Conv2dEncoder(EncoderNetwork):
             z = super().forward(x.unsqueeze(1)).mean(-2)
             # (B, C, L) -> (B, L, C)
             return z.transpose(1, 2).contiguous()
-        # visual stimulus is (B, L, C, H, W)
+        # XXX visual stimulus is (B, L, C, H, W)
         elif len(x.shape) > 3:
             is_video = len(x.shape) == 5
             if is_video:
@@ -271,7 +271,7 @@ class Conv2dDecoder(DecoderNetwork):
 
     def forward(self, x):
         """"
-        NOTE: here x and z should be swapped since we are going from latent to input space
+        NOTE: here x and z names should be swapped since we are going from latent to input space
         """
         # encoded audio sequence is (B, L, C)
         if len(x.shape) == 3:
@@ -280,7 +280,7 @@ class Conv2dDecoder(DecoderNetwork):
             if z.size(1) == 1:
                 return z.squeeze(1).contiguous()
             return z.contiguous()
-        # encoded visual feature map is (B, L, C, H, W) for video or (B, C, H, W) for image
+        # XXX encoded visual feature map is (B, L, C, H, W) for video or (B, C, H, W) for image
         elif len(x.shape) > 3:
             is_video = len(x.shape) == 5
             if is_video:

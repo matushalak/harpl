@@ -13,3 +13,5 @@ runs/
 datasets/mnist/
 
 reports/
+
+*.pt

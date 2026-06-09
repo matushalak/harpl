@@ -31,7 +31,9 @@ method_names = {
     'pred-mem': 'CL',
     'invZ': r'$\text{IL}^z$',
     'invC': r'$\text{IL}^c$',
-    'lejepa': 'RPL(noSG)+SigReg(z)',
+    'lejepa': 'RPL(noSG)+SigReg(z, time)',
+    'lejepa2': 'RPL(SG)+SigReg(c, batch)',
+    'predFULL': 'RPL(1000epochs)'
 }
 method_colors = {
     'sup': 'black',
@@ -44,6 +46,8 @@ method_colors = {
     'invZ': '#e28f5a',
     'invC': '#5aade2',
     'lejepa': 'green',
+    'lejepa2': 'blue',
+    'predFULL': 'orange'
 }
 baseline_styles = {'sup': ('black', '-'), 'rand': ('gray', '--'), 'raw': ('#7B1FA2', ':')}
 true_var_names = [r'$r_1$', r'$r_2$', r'$r_3$',

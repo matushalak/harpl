@@ -353,7 +353,7 @@ class LeJEPALoss(Criterion):
                  dense_prediction=False,
                  pred_loss_type='cosine',
                  no_sg=False,
-                 sigreg_lambd_=1.0, 
+                 sigreg_lambd_=0.05, 
                  sigreg_knots=17,
                  reg_dim="batch+time",
                  ):

@@ -21,6 +21,7 @@ from harpl.scripts.utils import (
     select_device,
 )
 
+from harpl.networks.repl import RePLSeq
 
 DEFAULT_SUPERVISED_CHECKPOINT = "checkpoints/animals_cts_noiseOnTop0.1_supervised_1/model_final.pt"
 
@@ -166,10 +167,16 @@ def _prepare_models(args, input_size, n_in_channels, preprocess, postprocess, de
         },
     )
     load_repl_weights_into_exposed_model(exposed, state_dict)
+    sequential = RePLSeq(encoder = reference.encoder, 
+                         integrator = reference.integrator, 
+                         predictor = reference.predictor,
+                         preprocess = reference.preprocess,
+                         postprocess = reference.postprocess)
 
     reference.eval()
     exposed.eval()
-    return reference.to(device), exposed.to(device)
+    sequential.eval()
+    return reference.to(device), exposed.to(device), sequential.to(device)
 
 
 def main(args):
@@ -191,7 +198,7 @@ def main(args):
     )
     preprocess, postprocess = additional_data_process(args.dataset, args.flatten_enc_output)
     n_in_channels = 1 if args.grayscale else 3
-    reference, exposed = _prepare_models(args, input_size, n_in_channels, preprocess, postprocess, device)
+    reference, exposed, sequential = _prepare_models(args, input_size, n_in_channels, preprocess, postprocess, device)
 
     *_, test_loader, _ = prepare_data(
         args.dataset,
@@ -229,10 +236,12 @@ def main(args):
 
     ref_time = 0.0
     exposed_time = 0.0
+    sequential_time = 0.0
     compared_batches = 0
     strict_equal = True
     allclose = True
     first_failed_stats = None
+    first_failed_stats_seq = None
     non_blocking = args.pin_memory and device.type == "cuda"
 
     with torch.inference_mode():
@@ -245,24 +254,39 @@ def main(args):
             for _ in range(args.warmup_batches if batch_idx == 0 else 0):
                 _ = _forward(reference, data, False)
                 _ = _forward(exposed, data, args.return_activations)
+                _ = _forward(sequential, data, False)
 
+            # Reference model
             _sync(device)
             start = time.perf_counter()
             ref_out = _forward(reference, data, False)
             _sync(device)
             ref_time += time.perf_counter() - start
 
+            # Exposed model
             _sync(device)
             start = time.perf_counter()
             exposed_out = _forward(exposed, data, args.return_activations)
             _sync(device)
             exposed_time += time.perf_counter() - start
 
+            # Sequential model
+            _sync(device)
+            start = time.perf_counter()
+            sequential_out = _forward(sequential, data, False)
+            _sync(device)
+            sequential_time += time.perf_counter() - start
+
             batch_equal, batch_close, stats = _compare_outputs(ref_out, exposed_out)
+            batch_equal_seq, batch_close_seq, stats_seq = _compare_outputs(ref_out, sequential_out)
             strict_equal = strict_equal and batch_equal
+            strict_equal_seq = strict_equal and batch_equal_seq
             allclose = allclose and batch_close
+            allclose_seq = allclose and batch_close_seq
             if not batch_close and first_failed_stats is None:
                 first_failed_stats = (batch_idx, stats)
+            if not batch_close_seq and first_failed_stats_seq is None:
+                first_failed_stats_seq = (batch_idx, stats_seq)
             compared_batches += 1
 
     if compared_batches == 0:
@@ -272,14 +296,23 @@ def main(args):
     print(f"device: {device}")
     print(f"batches: {compared_batches}")
     print(f"strict_equal: {strict_equal}")
+    print(f"strict_equal sequential: {strict_equal_seq}")
     print(f"allclose(atol={args.atol}, rtol={args.rtol}): {allclose}")
+    print(f"allclose sequential(atol={args.atol}, rtol={args.rtol}): {allclose_seq}")
     print(f"RePLModel total: {ref_time:.6f}s ({ref_time / compared_batches:.6f}s/batch)")
     print(f"RePLModelExposed total: {exposed_time:.6f}s ({exposed_time / compared_batches:.6f}s/batch)")
-    print(f"slowdown: {exposed_time / ref_time:.3f}x")
+    print(f"RePLSeq total: {sequential_time:.6f}s ({sequential_time / compared_batches:.6f}s/batch)")
+    print(f"slowdown exposed: {exposed_time / ref_time:.3f}x")
+    print(f"slowdown sequential: {sequential_time / ref_time:.3f}x")
 
     if first_failed_stats is not None:
         batch_idx, stats = first_failed_stats
         _print_stats(f"first mismatch batch {batch_idx}", stats)
+        raise SystemExit(1)
+
+    if first_failed_stats_seq is not None:
+        batch_idx, stats_seq = first_failed_stats_seq
+        _print_stats(f"first mismatch batch {batch_idx}", stats_seq)
         raise SystemExit(1)
 
 

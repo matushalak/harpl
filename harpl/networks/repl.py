@@ -181,6 +181,71 @@ class HierarchicalRePLModel(nn.Module):
         return z_list, ctx_list, pred_list
 
 
+class RePLSeq(nn.Module):
+    """
+    Sequential RePL model for processing sequences one timestep at a time.
+    """
+    def __init__(
+        self,
+        encoder,
+        integrator,
+        preprocess=None,
+        postprocess=None,
+        predictor=nn.Identity(),
+        freeze_repl=True,
+        eval_frozen=True,
+    ):
+        super(RePLSeq, self).__init__()
+        self.preprocess = preprocess
+        self.encoder = encoder
+        self.integrator = integrator
+        self.predictor = predictor
+        self.postprocess = postprocess
+
+        if freeze_repl:
+            for module in (self.encoder, self.integrator, self.predictor):
+                for param in module.parameters():
+                    param.requires_grad_(False)
+                if eval_frozen:
+                    module.eval()
+
+    def forward(self, data):
+        L = data.size(1) # sequence length
+        
+        preprocess_args = {}
+        if self.preprocess is not None:
+            data, preprocess_args = self.preprocess(data)
+
+        zs, cs, ps = [], [], []  # lists to store outputs at each timestep
+        hidden = getattr(self.integrator, "hidden", None)
+
+        for t in range(L):
+            # Get the t-th timestep's data
+            t_data = data[:, t:t+1, ...]  # (B, 1, C) or (B, 1, C, H, W)
+
+            z_t, c_t, p_t, hidden = self.forward_step(t_data, hidden)  # process the t-th timestep
+            zs.append(z_t)
+            cs.append(c_t)
+            ps.append(p_t)
+
+        # stack outputs from all timesteps
+        z = torch.cat(zs, dim=1)  # (B, L, C) or (B, L, C, H, W)
+        context_tensor = torch.cat(cs, dim=1)  # (B, L, C) or (B, L, C, H, W)
+        pred = torch.cat(ps, dim=1)  # (B, L, C*num_pred_steps) or (B, L, C*num_pred_steps, H, W)
+        return z, context_tensor, pred
+
+    def forward_step(self, t_data, hidden=None):
+        z_t = self.encoder(t_data)  # (B, 1, C) or (B, 1, C, H, W)
+        if self.postprocess is not None:
+            z_t = self.postprocess(z_t)
+
+        backbone = getattr(self.integrator, "backbone")
+        context_tensor_t, hidden = backbone(z_t, hidden)
+
+        pred_t = self.predictor(context_tensor_t)  # (B, L, C*num_pred_steps) or (B, L, C*num_pred_steps, H, W)
+        return z_t, context_tensor_t, pred_t, hidden
+
+
 # added for harpl to enable layerwise modulation
 class RePLModelExposed(nn.Module):
     """

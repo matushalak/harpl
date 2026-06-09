@@ -132,6 +132,10 @@ def add_training_args(parser):
 def add_logging_args(parser):
     parser.add_argument("--nolog", action="store_true", help="disable experiment logging")
     parser.add_argument("--logger", choices=["tensorboard", "wandb", "none"], default="wandb", help="experiment logger backend")
+    parser.add_argument("--wandb_project", type=str, default="HARPL", help="Weights & Biases project name")
+    parser.add_argument("--wandb_entity", type=str, default=None, help="Weights & Biases entity/team")
+    parser.add_argument("--wandb_run_id", type=str, default=None, help="Weights & Biases run id to resume")
+    parser.add_argument("--wandb_resume", choices=["allow", "must", "never", "auto"], default=None, help="Weights & Biases resume mode")
     parser.add_argument("--log_dir", type=str, default="runs", help="TensorBoard log root directory")
     parser.add_argument("--experiment_name", type=str, default="default", help="name of the experiment")
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="directory to save checkpoints")
@@ -147,7 +151,7 @@ def add_criterion_args(parser):
     parser.add_argument("--decorr_coef", type=float, default=10.0, help="decorrelation coefficient")
     parser.add_argument("--pred_loss_type", choices=["cosine", "l2"], default="l2", help="predictor loss type (only used for Pred loss)")
     parser.add_argument("--no_sg", action="store_true", help="do not use stop-gradient for the target network (only applies to non-contrastive SSL losses)")
-    parser.add_argument("--sigreg_lambd_", type=float, default=0.5, help="weight of the SigReg regularization term (only applies to LeJEPALoss)")
+    parser.add_argument("--sigreg_lambd_", type=float, default=0.05, help="weight of the SigReg regularization term (only applies to LeJEPALoss)")
     parser.add_argument("--sigreg_knots", type=int, default=17, help="number of knots for the SIGReg regularization (only applies to LeJEPALoss)")
 
 

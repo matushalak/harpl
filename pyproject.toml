@@ -17,9 +17,13 @@ dependencies = [
     "torchvision>=0.17",
     "tensorboard>=2.16",
     "kornia>=0.8",
+    "matplotlib>=3.7",
     "tqdm>=4.66",
     "wandb>=0.22.3",
 ]
+
+[project.scripts]
+harpl-plot-encoder-kernels = "harpl.scripts.plot_encoder_kernels:main"
 
 [tool.setuptools.packages.find]
 include = ["harpl*"]

@@ -233,7 +233,8 @@ def train_corrected_orientation_regressor(train_representations,
     clf_loss_fn = nn.CrossEntropyLoss()
     
     # Training loop with progress bar
-    epoch_pbar = tqdm(range(n_epochs), desc="Corrected Orientation Training")
+    # epoch_pbar = tqdm(range(n_epochs), desc="Corrected Orientation Training")
+    epoch_pbar = range(n_epochs)
     for epoch in epoch_pbar:
         optimizer.zero_grad()
         
@@ -263,7 +264,7 @@ def train_corrected_orientation_regressor(train_representations,
         optimizer.step()
 
         # Update progress bar with current losses
-        epoch_pbar.set_postfix(total_loss=f"{total_loss.item():.6f}", mse_loss=f"{loss.item():.6f}", clf_loss=f"{clf_loss.item():.6f}")
+        # epoch_pbar.set_postfix(total_loss=f"{total_loss.item():.6f}", mse_loss=f"{loss.item():.6f}", clf_loss=f"{clf_loss.item():.6f}")
     return (
         weights.detach(),
         intercepts.detach(),
@@ -652,7 +653,8 @@ def _train_binary_classifier(
     loss_fn = nn.BCEWithLogitsLoss()
     
     # Training loop with progress bar
-    epoch_pbar = tqdm(range(n_epochs), desc=f"Binary Classifier Training (Classes {class_idxes[0]} vs {class_idxes[1]})")
+    # epoch_pbar = tqdm(range(n_epochs), desc=f"Binary Classifier Training (Classes {class_idxes[0]} vs {class_idxes[1]})")
+    epoch_pbar = range(n_epochs)
     for epoch in epoch_pbar:
         optimizer.zero_grad()
         
@@ -668,7 +670,7 @@ def _train_binary_classifier(
         with torch.no_grad():
             preds = (torch.sigmoid(logits) > 0.5).float()
             accuracy = (preds == train_binary_labels_tensor).float().mean()
-            epoch_pbar.set_postfix(loss=f"{loss.item():.6f}", accuracy=f"{accuracy.item():.4f}")
+            # epoch_pbar.set_postfix(loss=f"{loss.item():.6f}", accuracy=f"{accuracy.item():.4f}")
     
     # Compute final projections for test set
     with torch.no_grad():

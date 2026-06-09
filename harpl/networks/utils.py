@@ -1,4 +1,5 @@
 from copy import deepcopy
+import os
 import torch
 import torch.nn as nn
 from harpl.networks.backbones import Conv2dEncoder, MLPEncoder
@@ -12,7 +13,7 @@ from harpl.networks.networks import (
     RecurrentIntegrator, 
     FlattenConv
 )
-from harpl.networks.repl import HierarchicalRePLModel, RePLModel
+from harpl.networks.repl import HierarchicalRePLModel, RePLModel, RePLModelExposed
 from harpl.networks._valid_names_lists import ENCODER_NAMES, INTEGRATOR_NAMES, PREDICTOR_NAMES
 
 
@@ -187,6 +188,46 @@ def get_predictor_output_dim(ctx_size, enc_size, pred_steps, dense_prediction, p
     output_dim *= pred_steps if dense_prediction and not single_readout else 1
     return output_dim
 
+
+def _extract_state_dict(checkpoint):
+    if isinstance(checkpoint, (str, os.PathLike)):
+        checkpoint = torch.load(checkpoint, map_location="cpu")
+    if isinstance(checkpoint, dict):
+        for key in ("state_dict", "model_state_dict", "model"):
+            value = checkpoint.get(key)
+            if isinstance(value, dict):
+                checkpoint = value
+                break
+    if not isinstance(checkpoint, dict):
+        raise TypeError(f"Expected a state_dict-like checkpoint, got {type(checkpoint).__name__}.")
+    return {
+        key.removeprefix("module."): value
+        for key, value in checkpoint.items()
+        if torch.is_tensor(value)
+    }
+
+
+def load_repl_weights_into_exposed_model(
+        exposed_model,
+        checkpoint,
+        strict=True,
+        freeze_repl=True,
+        eval_frozen=True):
+    """Load pretrained RePLModel weights into a RePLModelExposed instance."""
+    if not isinstance(exposed_model, RePLModelExposed):
+        raise TypeError(f"Expected RePLModelExposed, got {type(exposed_model).__name__}.")
+
+    incompatible = exposed_model.load_state_dict(_extract_state_dict(checkpoint), strict=strict)
+
+    if freeze_repl:
+        for module in (exposed_model.encoder, exposed_model.integrator, exposed_model.predictor):
+            for param in module.parameters():
+                param.requires_grad_(False)
+            if eval_frozen:
+                module.eval()
+
+    return incompatible
+
 def prepare_model(
         encoder_kind,
         integrator_kind,
@@ -214,7 +255,9 @@ def prepare_model(
         flatten_enc_output=False,
         n_in_channels=None,
         n_areas=None,
-        frozen_areas=None):
+        frozen_areas=None,
+        exposed=False,
+        exposed_kwargs=None):
     f"""Prepare RePL model.
     
     Args:
@@ -245,6 +288,8 @@ def prepare_model(
         n_in_channels (int): Number of input channels.
         n_areas (int): Number of areas in the hierarchical model.
         frozen_areas (list): List of boolean values indicating whether the areas are frozen.
+        exposed (bool): Whether to instantiate RePLModelExposed instead of RePLModel.
+        exposed_kwargs (dict): Additional keyword arguments for RePLModelExposed.
 
     Returns:
         RePLModel: RePL model.
@@ -263,9 +308,14 @@ def prepare_model(
         predictor = setup_predictor(predictor_kind, ctx_dim, enc_dim, pred_n_hidden_layers, pred_hidden_dim, 
                                     pred_steps, dense_prediction, prediction_target, pred_target_dim_override=pred_target_dim_override)
         
-        model = RePLModel(encoder=encoder, integrator=integrator, predictor=predictor, preprocess=preprocess, postprocess=postprocess)
+        model_cls = RePLModelExposed if exposed else RePLModel
+        model_kwargs = exposed_kwargs or {}
+        model = model_cls(encoder=encoder, integrator=integrator, predictor=predictor,
+                          preprocess=preprocess, postprocess=postprocess, **model_kwargs)
         
     else:  # hierarchical RePL model
+        if exposed:
+            raise NotImplementedError("RePLModelExposed is only implemented for non-hierarchical RePL models.")
         assert len(frozen_areas) == n_areas, "A boolean list of frozen areas with length equal to the number of areas in the hierarchy should be provided."
         if len(enc_dim) > 1:
             assert len(enc_dim) == n_areas, "Number of encoder dimensions should match the number of areas."
@@ -310,5 +360,14 @@ def prepare_model(
                                       preprocess=preprocess, postprocess=postprocess)
 
     if state_dict is not None:
-        model.load_state_dict(state_dict)
+        if exposed:
+            model_kwargs = exposed_kwargs or {}
+            load_repl_weights_into_exposed_model(
+                model,
+                state_dict,
+                freeze_repl=model_kwargs.get("freeze_repl", True),
+                eval_frozen=model_kwargs.get("eval_frozen", True),
+            )
+        else:
+            model.load_state_dict(_extract_state_dict(state_dict))
     return model

@@ -67,9 +67,10 @@ class ARPLmodel(nn.Module):
 
         self.head = head
         self.decoder = decoder
-        self.decoder_input_dim = decoder_input_dim or head.input_dim
-        self.task_embedding = nn.Embedding(num_tasks, self.decoder_input_dim)
-        self.class_embedding = nn.Embedding(head.num_classes, self.decoder_input_dim)
+        self.decoder_embedding_dim = decoder_input_dim or head.input_dim
+        self.decoder_input_dim = 2 * self.decoder_embedding_dim
+        self.task_embedding = nn.Embedding(num_tasks, self.decoder_embedding_dim)
+        self.class_embedding = nn.Embedding(head.num_classes, self.decoder_embedding_dim)
 
     @staticmethod
     def _layer_index(name: str) -> int | None:
@@ -170,17 +171,16 @@ class ARPLmodel(nn.Module):
             # task info is of shape (B, 3), where
             #   first column is task ID; and
             task_id = task_info[:, 0]  # (B, 1)
-            task_emb = self.task_embedding(task_id)  # (B, decoder_input_dim)
+            task_emb = self.task_embedding(task_id)  # (B, decoder_embedding_dim)
             #   second column is target class ID; and
-            #   third column indicates whether target class ID is given as prompt of not
+            #   third column indicates whether target class ID is given as prompt or not
             prompt_mask = task_info[:, 2].to(dtype=task_emb.dtype).unsqueeze(-1)
-            prompt_emb = self.class_embedding(task_info[:, 1]) * prompt_mask  # (B, decoder_input_dim)
-            # Combine task and class embeddings to form the task-dependent decoder input
-            decoder_input_const = (task_emb + prompt_emb).unsqueeze(1)  # (B, 1, decoder_input_dim)
+            prompt_emb = self.class_embedding(task_info[:, 1]) * prompt_mask  # (B, decoder_embedding_dim)
+            task_prompt_emb = (task_emb + prompt_emb).unsqueeze(1)  # (B, 1, decoder_embedding_dim)
             # Initialize p_t for the first timestep
-            p_t = torch.zeros_like(decoder_input_const)  # (B, 1, decoder_input_dim)
+            p_t = torch.zeros_like(task_prompt_emb)  # (B, 1, decoder_embedding_dim)
         else:
-            decoder_input_const = None
+            task_prompt_emb = None
             p_t = None
 
         L = data.size(1) # sequence length
@@ -194,12 +194,12 @@ class ARPLmodel(nn.Module):
             if has_task:
                 if p_t.ndim == 2:
                     p_t = p_t.unsqueeze(1)
-                if p_t.shape != decoder_input_const.shape:
+                if p_t.shape != task_prompt_emb.shape:
                     raise RuntimeError(
-                        "predictor output must match task embedding shape for ARPL decoder input; "
-                        f"got {tuple(p_t.shape)} and {tuple(decoder_input_const.shape)}"
+                        "predictor output must match task/prompt embedding shape before ARPL decoder concatenation; "
+                        f"got {tuple(p_t.shape)} and {tuple(task_prompt_emb.shape)}"
                     )
-                decoder_input_t = decoder_input_const + p_t
+                decoder_input_t = torch.cat((task_prompt_emb, p_t), dim=-1)
             else:
                 decoder_input_t = None
 

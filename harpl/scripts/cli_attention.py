@@ -1,11 +1,13 @@
 import argparse
+import gc
 import os
+import time
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from harpl.data.attention_sprites_dataset import (
     MovingAnimalAttentionDataset,
@@ -23,11 +25,18 @@ from harpl.scripts.args import (
     add_reproducibility_args,
 )
 from harpl.scripts.utils import (
+    close_logger,
+    cuda_memory_stats,
     get_data_specs,
+    init_logger,
     is_cuda_device,
+    log_variable,
     seed_everything,
     select_device,
 )
+
+
+TRAINABLE_PREFIXES = ("head.", "decoder.", "task_embedding.", "class_embedding.")
 
 
 def _normalize_output_size(value):
@@ -132,6 +141,27 @@ def _max_abs_delta(snapshot, named_params):
         delta = (param.detach() - before).abs().max().item()
         max_delta = max(max_delta, delta)
     return max_delta
+
+
+def _release_memory(device):
+    gc.collect()
+    if torch.device(device).type == "cuda":
+        torch.cuda.empty_cache()
+    elif torch.device(device).type == "mps" and hasattr(torch, "mps"):
+        torch.mps.empty_cache()
+
+
+def _mps_memory_stats(device):
+    if torch.device(device).type != "mps" or not hasattr(torch, "mps"):
+        return {}
+    stats = {}
+    if hasattr(torch.mps, "current_allocated_memory"):
+        stats["MPS/memory_allocated_gb"] = torch.mps.current_allocated_memory() / 1e9
+    if hasattr(torch.mps, "driver_allocated_memory"):
+        stats["MPS/driver_allocated_gb"] = torch.mps.driver_allocated_memory() / 1e9
+    if hasattr(torch.mps, "recommended_max_memory"):
+        stats["MPS/recommended_max_memory_gb"] = torch.mps.recommended_max_memory() / 1e9
+    return stats
 
 
 def _prepare_attention_dataset(args):
@@ -243,6 +273,36 @@ def _prepare_optimizer(args, model):
     raise ValueError(f"Unknown optimizer: {args.optimizer}")
 
 
+def _validate_trainable_scope(model):
+    trainable_named = [(name, param) for name, param in model.named_parameters() if param.requires_grad]
+    frozen_named = [(name, param) for name, param in model.named_parameters() if not param.requires_grad]
+    unexpected = [
+        name
+        for name, _ in trainable_named
+        if not name.startswith(TRAINABLE_PREFIXES)
+    ]
+    if unexpected:
+        raise RuntimeError(
+            "Unexpected trainable parameters outside attention/readout modules: "
+            + ", ".join(unexpected)
+        )
+    for prefix in TRAINABLE_PREFIXES:
+        if not any(name.startswith(prefix) for name, _ in trainable_named):
+            raise RuntimeError(f"No trainable parameters found under expected prefix {prefix!r}.")
+    return trainable_named, frozen_named
+
+
+def _validate_optimizer_scope(optimizer, trainable_named):
+    trainable_param_ids = {id(param) for _, param in trainable_named}
+    optimizer_param_ids = {
+        id(param)
+        for group in optimizer.param_groups
+        for param in group["params"]
+    }
+    if optimizer_param_ids != trainable_param_ids:
+        raise RuntimeError("Optimizer parameter set does not exactly match trainable ARPL parameters.")
+
+
 def train(args, device):
     if args.torch_num_threads > 0:
         torch.set_num_threads(args.torch_num_threads)
@@ -250,11 +310,11 @@ def train(args, device):
     dataset = _prepare_attention_dataset(args)
     loader = DataLoader(dataset, **_dataloader_kwargs(args, device))
     model = _prepare_arpl_model(args, dataset, device)
+    trainable_named, frozen_named = _validate_trainable_scope(model)
     optimizer = _prepare_optimizer(args, model)
+    _validate_optimizer_scope(optimizer, trainable_named)
     criterion = nn.CrossEntropyLoss()
 
-    trainable_named = [(name, param) for name, param in model.named_parameters() if param.requires_grad]
-    frozen_named = [(name, param) for name, param in model.named_parameters() if not param.requires_grad]
     trainable_snapshot = _snapshot_named_params(trainable_named)
     frozen_snapshot = _snapshot_named_params(frozen_named)
 
@@ -268,6 +328,7 @@ def train(args, device):
     non_blocking = args.pin_memory and is_cuda_device(device)
     first_loss = None
     last_loss = None
+    global_step = 0
 
     for epoch in range(args.epochs):
         model.train()
@@ -281,18 +342,26 @@ def train(args, device):
         total_items = 0
         total_batches = 0
 
-        progress = tqdm(loader, desc=f"epoch {epoch + 1}/{args.epochs}")
+        progress = tqdm(loader, desc=f"epoch {epoch + 1}/{args.epochs}", leave=False)
+        last_batch_end = time.perf_counter()
         for batch_idx, (video, task_info) in enumerate(progress):
+            data_time = time.perf_counter() - last_batch_end
+            step_start = time.perf_counter()
             video = video.to(device, non_blocking=non_blocking)
             task_info = _move_labels(task_info, device, non_blocking=non_blocking)
 
-            *_, logits = model((video, task_info))
+            logits = model((video, task_info), return_logits_only=True)
             targets, mask = _make_attention_targets(task_info, logits.size(1), args.cue_frames)
             loss = criterion(logits[mask], targets[mask])
 
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             optimizer.step()
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+            elif device.type == "mps" and hasattr(torch, "mps"):
+                torch.mps.synchronize()
+            step_time = time.perf_counter() - step_start
 
             with torch.no_grad():
                 preds = logits[mask].argmax(dim=-1)
@@ -302,16 +371,35 @@ def train(args, device):
                 if first_loss is None:
                     first_loss = loss_value
                 last_loss = loss_value
+                batch_acc = correct / max(count, 1)
+                samples_per_sec = video.shape[0] / step_time if step_time > 0 else 0.0
                 total_loss += loss_value
                 total_correct += correct
                 total_items += count
                 total_batches += 1
                 progress.set_postfix(
                     loss=f"{loss_value:.4f}",
-                    acc=f"{correct / max(count, 1):.3f}",
+                    acc=f"{batch_acc:.3f}",
                 )
+                if not args.nolog:
+                    log_variable(epoch + 1, "Attention/epoch", commit=False)
+                    log_variable(loss_value, "Attention/train_loss_step", commit=False)
+                    log_variable(batch_acc, "Attention/train_acc_step", commit=False)
+                    log_variable(count, "Attention/supervised_items_step", commit=False)
+                    log_variable(data_time, "Attention/timing_data_sec", commit=False)
+                    log_variable(step_time, "Attention/timing_step_sec", commit=False)
+                    log_variable(samples_per_sec, "Attention/timing_samples_per_sec", commit=False)
+                    for metric_name, metric_value in cuda_memory_stats(device).items():
+                        log_variable(metric_value, f"Attention/{metric_name}", commit=False)
+                    for metric_name, metric_value in _mps_memory_stats(device).items():
+                        log_variable(metric_value, f"Attention/{metric_name}", commit=False)
+                    log_variable(global_step, "Attention/global_step", commit=True)
 
-            if args.max_batches and batch_idx + 1 >= args.max_batches:
+            stop_after_batch = args.max_batches and batch_idx + 1 >= args.max_batches
+            del video, task_info, logits, targets, mask, loss
+            global_step += 1
+            last_batch_end = time.perf_counter()
+            if stop_after_batch:
                 break
 
         avg_loss = total_loss / max(total_batches, 1)
@@ -320,6 +408,13 @@ def train(args, device):
             f"epoch={epoch + 1} train_loss={avg_loss:.6f} "
             f"train_acc={avg_acc:.4f} batches={total_batches}"
         )
+        if not args.nolog:
+            log_variable(epoch + 1, "Attention/epoch_summary", commit=False)
+            log_variable(avg_loss, "Attention/train_loss_epoch", commit=False)
+            log_variable(avg_acc, "Attention/train_acc_epoch", commit=False)
+            log_variable(total_batches, "Attention/batches_epoch", commit=True)
+        progress.close()
+        _release_memory(device)
 
     if first_loss is None or last_loss is None:
         raise RuntimeError("No training batches were processed.")
@@ -330,6 +425,11 @@ def train(args, device):
         f"first_batch_loss={first_loss:.6f} last_batch_loss={last_loss:.6f} "
         f"trainable_max_delta={trainable_delta:.6g} frozen_max_delta={frozen_delta:.6g}"
     )
+    if not args.nolog:
+        log_variable(first_loss, "Attention/first_batch_loss", commit=False)
+        log_variable(last_loss, "Attention/last_batch_loss", commit=False)
+        log_variable(trainable_delta, "Attention/trainable_max_delta", commit=False)
+        log_variable(frozen_delta, "Attention/frozen_max_delta", commit=True)
     if frozen_delta > args.freeze_tolerance:
         raise RuntimeError(
             f"Frozen RePL parameters changed by {frozen_delta:.6g}, "
@@ -365,7 +465,7 @@ def build_parser():
     parser.add_argument("--sprite_noise_on_top", action="store_true")
     parser.add_argument("--spritevid_device", type=str, default="cpu")
     parser.add_argument("--seq_len", type=int, default=32)
-    parser.add_argument("--num_sequences", type=int, default=1000)
+    parser.add_argument("--num_sequences", type=int, default=16000)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=0)
@@ -379,9 +479,9 @@ def build_parser():
     parser.add_argument("--attention_task", default="mixed")
     parser.add_argument("--attention_tasks", nargs="*", default=None)
     parser.add_argument("--popout_mode", choices=["class", "rotation", "velocity", "mixed"], default="class")
-    parser.add_argument("--num_distractors", type=int, default=3)
-    parser.add_argument("--crowd_size", type=int, default=5)
-    parser.add_argument("--cue_frames", type=int, default=6)
+    parser.add_argument("--num_distractors", type=int, default=1)
+    parser.add_argument("--crowd_size", type=int, default=2)
+    parser.add_argument("--cue_frames", type=int, default=5)
     parser.add_argument("--attention_hidden_dim", type=int, default=None)
     parser.add_argument("--attention_decoder_layers", type=int, default=1)
     parser.add_argument("--max_batches", type=int, default=0, help="Stop each epoch after this many batches; 0 means full epoch.")
@@ -389,6 +489,14 @@ def build_parser():
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints")
     parser.add_argument("--experiment_name", type=str, default="attention")
     parser.add_argument("--torch_num_threads", type=int, default=0)
+    parser.add_argument("--nolog", action="store_true", help="disable experiment logging")
+    parser.add_argument("--logger", choices=["tensorboard", "wandb", "none"], default="wandb", help="experiment logger backend")
+    parser.add_argument("--wandb_project", type=str, default="HARPL", help="Weights & Biases project name")
+    parser.add_argument("--wandb_entity", type=str, default=None, help="Weights & Biases entity/team")
+    parser.add_argument("--wandb_run_id", type=str, default=None, help="Weights & Biases run id to resume")
+    parser.add_argument("--wandb_resume", choices=["allow", "must", "never", "auto"], default=None, help="Weights & Biases resume mode")
+    parser.add_argument("--wandb_group", type=str, default="attention", help="Weights & Biases run group")
+    parser.add_argument("--log_dir", type=str, default="runs", help="TensorBoard log root directory")
 
     parser.set_defaults(
         encoder="conv2d",
@@ -416,8 +524,12 @@ def main(argv=None):
     if args.spritevid_noise_type == "none":
         args.spritevid_noise_type = None
     seed_everything(args.seed, args.deterministic)
+    init_logger(args)
     device = select_device(args.device)
-    train(args, device)
+    try:
+        train(args, device)
+    finally:
+        close_logger()
 
 
 if __name__ == "__main__":

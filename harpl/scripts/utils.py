@@ -554,6 +554,8 @@ def init_logger(args):
         }
         if getattr(args, "wandb_entity", None):
             wandb_kwargs["entity"] = args.wandb_entity
+        if getattr(args, "wandb_group", None):
+            wandb_kwargs["group"] = args.wandb_group
         if getattr(args, "wandb_run_id", None):
             wandb_kwargs["id"] = args.wandb_run_id
             wandb_kwargs["resume"] = getattr(args, "wandb_resume", None) or "allow"

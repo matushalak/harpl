@@ -148,7 +148,7 @@ class ARPLmodel(nn.Module):
             )
         return attention
 
-    def forward(self, data):
+    def forward(self, data, return_logits_only=False):
         has_task = False
         task_info = None
         if isinstance(data, (tuple, list)) and len(data) == 2:
@@ -211,16 +211,20 @@ class ARPLmodel(nn.Module):
             # classifier based on the context representation at the current timestep
             k_t = self.head(c_t)  # (B, 1, num_classes)
             
-            zs.append(z_t)
-            cs.append(c_t)
-            ps.append(p_t)
+            if not return_logits_only:
+                zs.append(z_t)
+                cs.append(c_t)
+                ps.append(p_t)
             ks.append(k_t)
 
         # Returns: stacked outputs from all timesteps
+        logits = torch.cat(ks, dim=1)  # (B, L, num_classes)
+        if return_logits_only:
+            return logits
+
         z = torch.cat(zs, dim=1)  # (B, L, C) 
         context_tensor = torch.cat(cs, dim=1)  # (B, L, C)
         pred = torch.cat(ps, dim=1)  # (B, L, C*(num_pred_steps=1))
-        logits = torch.cat(ks, dim=1)  # (B, L, num_classes)
         return z, context_tensor, pred, logits
         
     

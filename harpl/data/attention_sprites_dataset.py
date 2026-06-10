@@ -11,7 +11,7 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import numpy as np
 import torch
@@ -29,6 +29,8 @@ TASK_TO_ID = {
     "top_down_search": 3,
     "perceptual_grouping": 4,
 }
+
+ID_TO_TASK = {task_id: task_name for task_name, task_id in TASK_TO_ID.items()}
 
 POPOUT_MODE_TO_ID = {
     "none": -1,
@@ -70,7 +72,8 @@ class MovingAnimalAttentionDataset(Dataset):
     def __init__(
         self,
         data_dir: str | Path,
-        task: str = "mixed",
+        task: str | Iterable[int | str] = "mixed",
+        tasks: Iterable[int | str] | None = None,
         output_size: tuple[int, int] = (64, 64),
         base_output_size: tuple[int, int] = (64, 64),
         scale_pixel_parameters: bool = True,
@@ -105,9 +108,9 @@ class MovingAnimalAttentionDataset(Dataset):
         normalize: bool = False,
         mean: float | tuple[float, float, float] | None = None,
         std: float | tuple[float, float, float] | None = None,
+        return_metadata: bool = False,
     ):
-        if task not in self.valid_tasks:
-            raise ValueError(f"task must be one of {self.valid_tasks}")
+        self.task_pool = self._normalize_task_pool(task, tasks)
         if popout_mode not in self.valid_popout_modes:
             raise ValueError(f"popout_mode must be one of {self.valid_popout_modes}")
         if noise_type not in self.valid_noise_types:
@@ -124,7 +127,9 @@ class MovingAnimalAttentionDataset(Dataset):
             raise ValueError("num_distractors must be at least 1")
 
         self.data_dir = Path(data_dir)
-        self.task = task
+        self.task = self.task_pool[0] if len(self.task_pool) == 1 else "mixed"
+        self.tasks = self.task_pool
+        self.task_ids = tuple(TASK_TO_ID[task_name] for task_name in self.task_pool)
         self.output_size = self._as_size_tuple(output_size, "output_size")
         self.base_output_size = self._as_size_tuple(base_output_size, "base_output_size")
         self.scale_pixel_parameters = scale_pixel_parameters
@@ -160,6 +165,7 @@ class MovingAnimalAttentionDataset(Dataset):
         self.normalize = normalize
         self.mean = self._as_channel_array(mean) if mean is not None else None
         self.std = self._as_channel_array(std) if std is not None else None
+        self.return_metadata = return_metadata
         self.max_objects = max(1, num_distractors + 1, crowd_size)
 
         if self.normalize and (self.mean is None or self.std is None):
@@ -177,7 +183,7 @@ class MovingAnimalAttentionDataset(Dataset):
     def __len__(self) -> int:
         return self.num_sequences
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, dict[str, Any]]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor | dict[str, Any]]:
         rng = np.random.default_rng(self.seed + idx * 9973)
         task = self._choose_task(rng)
         popout_mode = self._choose_popout_mode(rng) if task == "popout" else "none"
@@ -201,6 +207,8 @@ class MovingAnimalAttentionDataset(Dataset):
             std = torch.as_tensor(self.std, dtype=video.dtype, device=video.device).view(1, 3, 1, 1)
             video = (video - mean) / std
         labels = self._make_labels(spec)
+        if not self.return_metadata:
+            return video, labels["task_info"]
         return video, labels
 
     def _find_sprite_paths(self) -> list[Path]:
@@ -271,10 +279,48 @@ class MovingAnimalAttentionDataset(Dataset):
             raise ValueError("mean/std must be scalar or length-3")
         return arr.astype(np.float32)
 
+    def _normalize_task_pool(
+        self,
+        task: str | Iterable[int | str],
+        tasks: Iterable[int | str] | None,
+    ) -> tuple[str, ...]:
+        if tasks is not None:
+            if not isinstance(task, str) or task != "mixed":
+                raise ValueError("Specify either task or tasks, not both.")
+            values = list(tasks)
+        elif isinstance(task, str):
+            if task not in self.valid_tasks:
+                raise ValueError(f"task must be one of {self.valid_tasks}")
+            values = list(TASK_TO_ID) if task == "mixed" else [task]
+        else:
+            values = list(task)
+
+        if not values:
+            raise ValueError("At least one task must be specified.")
+
+        normalized: list[str] = []
+        for value in values:
+            if isinstance(value, str):
+                if value == "mixed":
+                    raise ValueError("tasks cannot include 'mixed'; pass explicit task names or IDs.")
+                if value not in TASK_TO_ID:
+                    raise ValueError(f"Unknown attention task: {value}")
+                task_name = value
+            elif isinstance(value, (int, np.integer)):
+                task_id = int(value)
+                if task_id not in ID_TO_TASK:
+                    raise ValueError(f"Unknown attention task ID: {task_id}")
+                task_name = ID_TO_TASK[task_id]
+            else:
+                raise TypeError("tasks must contain task name strings or integer task IDs.")
+            if task_name not in normalized:
+                normalized.append(task_name)
+        return tuple(normalized)
+
     def _choose_task(self, rng: np.random.Generator) -> str:
-        if self.task != "mixed":
-            return self.task
-        return str(rng.choice(list(TASK_TO_ID.keys())))
+        if len(self.task_pool) == 1:
+            return self.task_pool[0]
+        return str(rng.choice(self.task_pool))
 
     def _choose_popout_mode(self, rng: np.random.Generator) -> str:
         if self.popout_mode != "mixed":
@@ -872,6 +918,11 @@ class MovingAnimalAttentionDataset(Dataset):
         object_count = spec["object_count"]
         target_class = spec["target_class"]
         prompt_class = spec["prompt_class"]
+        prompt_given = prompt_class != NO_PROMPT_CLASS
+        task_info = torch.tensor(
+            [spec["task_id"], target_class, int(prompt_given)],
+            dtype=torch.long,
+        )
 
         object_class = np.full(self.max_objects, -1, dtype=np.int64)
         object_mask = np.zeros(self.max_objects, dtype=bool)
@@ -900,6 +951,7 @@ class MovingAnimalAttentionDataset(Dataset):
         render_order[: len(spec["render_order"])] = np.asarray(spec["render_order"], dtype=np.int64)
 
         return {
+            "task_info": task_info,
             "task": spec["task"],
             "task_id": torch.tensor(spec["task_id"], dtype=torch.long),
             "popout_mode": spec["popout_mode"],
@@ -908,6 +960,7 @@ class MovingAnimalAttentionDataset(Dataset):
             "target_class_dense": torch.full((self.seq_len,), target_class, dtype=torch.long),
             "prompt_class": torch.tensor(prompt_class, dtype=torch.long),
             "prompt_class_dense": torch.full((self.seq_len,), prompt_class, dtype=torch.long),
+            "prompt_given": torch.tensor(prompt_given, dtype=torch.bool),
             "object_count": torch.tensor(object_count, dtype=torch.long),
             "object_class": torch.from_numpy(object_class),
             "object_mask": torch.from_numpy(object_mask),
@@ -927,6 +980,7 @@ class MovingAnimalAttentionDataset(Dataset):
 
 __all__ = [
     "MovingAnimalAttentionDataset",
+    "ID_TO_TASK",
     "NO_PROMPT_CLASS",
     "TASK_TO_ID",
     "POPOUT_MODE_TO_ID",

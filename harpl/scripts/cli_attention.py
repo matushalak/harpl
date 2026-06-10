@@ -241,7 +241,7 @@ def _prepare_arpl_model(args, dataset, device):
     attention_channels = _infer_first_encoder_channels(repl.encoder)
     head = ClassificationHead(input_dim=context_dim, num_classes=len(dataset.sprites))
     decoder = ChannelAttentionDecoder(
-        input_dim=predictor_output_dim,
+        input_dim=2 * predictor_output_dim,
         output_dim=attention_channels,
         hidden_dim=args.attention_hidden_dim or context_dim,
         n_hidden_layers=args.attention_decoder_layers,

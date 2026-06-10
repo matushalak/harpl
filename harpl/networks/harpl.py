@@ -39,7 +39,7 @@ class ARPLmodel(nn.Module):
 
     Assumes video format of data (B, L, C, H, W) and processes sequentially along the L dimension.
     """
-    def __init__(self, 
+    def __init__(self,
                  encoder,
                  integrator,
                  predictor,
@@ -67,9 +67,10 @@ class ARPLmodel(nn.Module):
 
         self.head = head
         self.decoder = decoder
-        self.decoder_input_dim = decoder_input_dim or head.input_dim
-        self.task_embedding = nn.Embedding(num_tasks, self.decoder_input_dim)
-        self.class_embedding = nn.Embedding(head.num_classes, self.decoder_input_dim)
+        self.decoder_embedding_dim = decoder_input_dim or head.input_dim
+        self.decoder_input_dim = 2 * self.decoder_embedding_dim
+        self.task_embedding = nn.Embedding(num_tasks, self.decoder_embedding_dim)
+        self.class_embedding = nn.Embedding(head.num_classes, self.decoder_embedding_dim)
 
     @staticmethod
     def _layer_index(name: str) -> int | None:
@@ -167,50 +168,49 @@ class ARPLmodel(nn.Module):
             task_info = task_info.to(device=data.device, dtype=torch.long)
             if task_info.ndim == 1:
                 task_info = task_info.unsqueeze(0)
-            # task info is of shape (B, 3), where 
-            #   first column is task ID; and 
+            # task info is of shape (B, 3), where
+            #   first column is task ID; and
             task_id = task_info[:, 0]  # (B, 1)
-            task_emb = self.task_embedding(task_id)  # (B, decoder_input_dim)
-            #   second column is target class ID; and 
-            #   third column indicates whether target class ID is given as prompt of not
+            task_emb = self.task_embedding(task_id)  # (B, decoder_embedding_dim)
+            #   second column is target class ID; and
+            #   third column indicates whether target class ID is given as prompt or not
             prompt_mask = task_info[:, 2].to(dtype=task_emb.dtype).unsqueeze(-1)
-            prompt_emb = self.class_embedding(task_info[:, 1]) * prompt_mask  # (B, decoder_input_dim)
-            # Combine task and class embeddings to form the task-dependent decoder input
-            decoder_input_const = (task_emb + prompt_emb).unsqueeze(1)  # (B, 1, decoder_input_dim)
+            prompt_emb = self.class_embedding(task_info[:, 1]) * prompt_mask  # (B, decoder_embedding_dim)
+            task_prompt_emb = (task_emb + prompt_emb).unsqueeze(1)  # (B, 1, decoder_embedding_dim)
             # Initialize p_t for the first timestep
-            p_t = torch.zeros_like(decoder_input_const)  # (B, 1, decoder_input_dim)
+            p_t = torch.zeros_like(task_prompt_emb)  # (B, 1, decoder_embedding_dim)
         else:
-            decoder_input_const = None
+            task_prompt_emb = None
             p_t = None
-        
+
         L = data.size(1) # sequence length
-        
+
         # Sequential processing of visual stream
         for t in range(L):
             # Get the t-th timestep's data
             data_t = data[:, t:t+1, ...]  # (B, 1, C, H, W)
-                
+
             # decoder input only if task info is available.
             if has_task:
                 if p_t.ndim == 2:
                     p_t = p_t.unsqueeze(1)
-                if p_t.shape != decoder_input_const.shape:
+                if p_t.shape != task_prompt_emb.shape:
                     raise RuntimeError(
-                        "predictor output must match task embedding shape for ARPL decoder input; "
-                        f"got {tuple(p_t.shape)} and {tuple(decoder_input_const.shape)}"
+                        "predictor output must match task/prompt embedding shape before ARPL decoder concatenation; "
+                        f"got {tuple(p_t.shape)} and {tuple(task_prompt_emb.shape)}"
                     )
-                decoder_input_t = decoder_input_const + p_t
+                decoder_input_t = torch.cat((task_prompt_emb, p_t), dim=-1)
             else:
                 decoder_input_t = None
 
             # process the t-th timestep
-            z_t, c_t, p_t, integrator_hidden_t = self.forward_step(data_t, 
+            z_t, c_t, p_t, integrator_hidden_t = self.forward_step(data_t,
                                                                    integrator_hidden_t,
                                                                    decoder_input_t
                                                                    )
             # classifier based on the context representation at the current timestep
             k_t = self.head(c_t)  # (B, 1, num_classes)
-            
+
             if not return_logits_only:
                 zs.append(z_t)
                 cs.append(c_t)
@@ -222,15 +222,15 @@ class ARPLmodel(nn.Module):
         if return_logits_only:
             return logits
 
-        z = torch.cat(zs, dim=1)  # (B, L, C) 
+        z = torch.cat(zs, dim=1)  # (B, L, C)
         context_tensor = torch.cat(cs, dim=1)  # (B, L, C)
         pred = torch.cat(ps, dim=1)  # (B, L, C*(num_pred_steps=1))
         return z, context_tensor, pred, logits
-        
-    
-    def forward_step(self, 
-                     data_t, 
-                     integrator_hidden_t=None, 
+
+
+    def forward_step(self,
+                     data_t,
+                     integrator_hidden_t=None,
                      decoder_input_t=None):
         z0_t = self._forward_encoder_first(data_t)
         # compute dynamic attention with decoder

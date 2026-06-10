@@ -5,8 +5,8 @@
 #SBATCH --job-name=HarplMovingAnimals
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=16:00:00
-#SBATCH --array=1
+#SBATCH --time=20:00:00
+#SBATCH --array=4-6
 #SBATCH --output=slurm_moving_animals%A_%a.out
 #SBATCH --error=slurm_moving_animals%A_%a.err
 
@@ -42,15 +42,23 @@ COMMON_ARGS=(
 )
 
 case "$TASK_ID" in
-    0)
+    4)
         EXTRA_ARGS=(
-            --experiment_name animals_cts_noiseOnTop0.1_predFULL_1
+            --experiment_name animals_cts_noiseOnTop0.1_predFULL_4
+            --grayscale
         )
         ;;
-    1)
+    5)
         EXTRA_ARGS=(
-            --experiment_name animals_cts_noiseOnTop0.1_predFULL_3
+            --experiment_name animals_cts_noiseOnTop0.1_predFULL_5
             --spritevid_max_sprites 10
+            --num_sequences 20000
+        )
+        ;;
+    6)
+        EXTRA_ARGS=(
+            --experiment_name animals_cts_noiseOnTop0.1_predFULL_6
+            --num_sequences 24000
         )
         ;;
     *)

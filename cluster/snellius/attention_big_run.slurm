@@ -2,13 +2,13 @@
 
 #SBATCH --partition=gpu_mig
 #SBATCH --gpus=1
-#SBATCH --job-name=HarplMovingAnimalsAttn
+#SBATCH --job-name=HarplAttentionMovingAnimals
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=24:00:00
-#SBATCH --array=0
-#SBATCH --output=slurm_moving_animals%A_%a.out
-#SBATCH --error=slurm_moving_animals%A_%a.err
+#SBATCH --time=16:00:00
+#SBATCH --array=1
+#SBATCH --output=slurm_attention_moving_animals%A_%a.out
+#SBATCH --error=slurm_attention_moving_animals%A_%a.err
 
 module purge
 module load 2025

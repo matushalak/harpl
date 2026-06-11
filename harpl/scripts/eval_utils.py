@@ -1,8 +1,14 @@
 import numpy as np
 import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+
+from harpl.data.attention_sprites_dataset import TASK_TO_ID
+from harpl.data.synthetic_sprites_dataset import SpriteVideoDataset
 from harpl.networks.networks import LinearReadout, IdentityIntegrator
 from harpl.networks.utils import get_predictor_output_dim
 from harpl.metrics.metrics import compute_r2
+from harpl.scripts.utils import get_data_specs, is_cuda_device, log_variable
 
 
 def compute_readout(data, target_length, readout, readout_input, task=None, dense_prediction=False, single_readout=False, pred_steps=None, full_spatial_readout=False):
@@ -673,6 +679,195 @@ def offline_linear_regression(
         "dense_regressor": dense_regressor,
         "seq_regressor": seq_regressor
     }
+
+
+@torch.no_grad()
+def evaluate_attention_model(
+    args,
+    model,
+    loader,
+    device,
+    split_name,
+    make_attention_targets,
+    move_labels,
+    use_attention=True,
+):
+    model.eval()
+    model.encoder_first.eval()
+    model.encoder_tail.eval()
+    model.integrator.eval()
+    model.predictor.eval()
+    model.head.eval()
+    non_blocking = args.pin_memory and is_cuda_device(device)
+    criterion = nn.CrossEntropyLoss()
+    total_loss = 0.0
+    total_correct = 0
+    total_items = 0
+    total_batches = 0
+    for video, task_info in loader:
+        video = video.to(device, non_blocking=non_blocking)
+        task_info = move_labels(task_info, device, non_blocking=non_blocking)
+        logits = model((video, task_info), return_logits_only=True, use_attention=use_attention)
+        targets, mask = make_attention_targets(task_info, logits.size(1), args.cue_frames)
+        loss = criterion(logits[mask], targets[mask])
+        preds = logits[mask].argmax(dim=-1)
+        total_loss += loss.item()
+        total_correct += (preds == targets[mask]).sum().item()
+        total_items += int(mask.sum().item())
+        total_batches += 1
+    avg_loss = total_loss / max(total_batches, 1)
+    avg_acc = total_correct / max(total_items, 1)
+    suffix = "attention" if use_attention else "no_attention"
+    print(f"{split_name}_{suffix}_loss={avg_loss:.6f} {split_name}_{suffix}_acc={avg_acc:.4f} batches={total_batches}")
+    if not args.nolog:
+        log_variable(avg_loss, f"Attention/{split_name}_{suffix}_loss", commit=False)
+        log_variable(avg_acc, f"Attention/{split_name}_{suffix}_acc", commit=True)
+    return avg_loss, avg_acc
+
+
+def evaluate_pretrained_attention_tasks(
+    args,
+    device,
+    prepare_attention_dataset,
+    prepare_arpl_model,
+    dataloader_kwargs,
+    make_attention_targets,
+    move_labels,
+):
+    base_task = args.attention_task
+    base_tasks = args.attention_tasks
+    model_dataset = prepare_attention_dataset(args, split="test", num_sequences=args.attention_test_sequences)
+    model = prepare_arpl_model(args, model_dataset, device)
+    for task_name in TASK_TO_ID:
+        args.attention_task = task_name
+        args.attention_tasks = None
+        dataset = prepare_attention_dataset(args, split="test", num_sequences=args.attention_test_sequences)
+        loader = DataLoader(dataset, **dataloader_kwargs(args, device, shuffle=False))
+        evaluate_attention_model(
+            args,
+            model,
+            loader,
+            device,
+            f"pretrained_{task_name}",
+            make_attention_targets,
+            move_labels,
+            use_attention=False,
+        )
+    args.attention_task = base_task
+    args.attention_tasks = base_tasks
+
+
+@torch.no_grad()
+def evaluate_cross_decode_sprites(
+    args,
+    device,
+    prepare_attention_dataset,
+    prepare_arpl_model,
+    default_readout_path,
+    normalize_output_size,
+):
+    dataset = prepare_attention_dataset(args, split="test", num_sequences=1)
+    model = prepare_arpl_model(args, dataset, device)
+    model.eval()
+    input_size, num_classes = get_data_specs(
+        dataset="animals",
+        target_label="multitask",
+        spritevid_num_sprites=args.spritevid_max_sprites,
+        spritevid_output_size=normalize_output_size(args.spritevid_output_size),
+        flatten_images=args.flatten_images,
+    )
+    readout = prepare_readout(
+        task="multitask",
+        downstream_input="ctx",
+        input_spatial_size=input_size,
+        single_timestep_readout=False,
+        full_spatial_readout=False,
+        num_classes=num_classes,
+        seq_len=args.seq_len,
+        evaluate_concat_features=False,
+        enc_output_dim=args.enc_output_dim,
+        ctx_dim=args.ctx_dim,
+        pred_steps=args.pred_steps,
+        dense_prediction=args.dense_prediction,
+        prediction_target=args.prediction_target,
+        pred_target_dim_override=args.pred_target_dim_override,
+        model=model,
+    ).to(device)
+    readout_path = default_readout_path(args.model_path)
+    if args.cross_decode_readout_path:
+        readout_path = args.cross_decode_readout_path
+    readout_path = str(readout_path)
+    readout.load_state_dict(torch.load(readout_path, map_location=device), strict=True)
+    readout.eval()
+    stats = None
+    if args.cross_decode_readout_stats_path:
+        stats = torch.load(args.cross_decode_readout_stats_path, map_location=device)
+
+    heldout_dataset = SpriteVideoDataset(
+        data_dir=args.data_input_dir,
+        split="train",
+        output_size=normalize_output_size(args.spritevid_output_size),
+        seq_len=args.seq_len,
+        num_sequences=args.cross_decode_sequences,
+        grayscale=args.grayscale,
+        device=args.spritevid_device,
+        seed=args.seed + 30_000_000,
+        sprite_indices=args.cross_decode_sprite_indices,
+        sprite_img_dir=args.sprite_img_dir,
+        discretize_latents=getattr(args, "spritevid_discretize_latents", False),
+        noise_type=args.spritevid_noise_type,
+        noise_intensity=args.spritevid_noise_level,
+        freeze_noise=args.spritevid_frozen_noise,
+        noise_on_top=args.sprite_noise_on_top,
+    )
+    loader = DataLoader(
+        heldout_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        pin_memory=args.pin_memory and device.type == "cuda",
+        drop_last=False,
+    )
+    readout_by_name = {module.task_name: module for module in readout}
+    predictions = {}
+    targets_all = {}
+    for video, labels in loader:
+        video = video.to(device)
+        labels = tuple(label.to(device) for label in labels)
+        context = model(video, use_attention=False)[1]
+        if stats is not None:
+            context = (context - stats["mean"]) / (stats["std"] + 1e-8)
+
+        _, dense_labels, cts_labels, cts_dense_labels, _ = labels
+        targets = {
+            "speed": cts_labels[:, 0],
+            "rotation_speed": cts_labels[:, 1],
+            "x-position": cts_dense_labels[:, :, 0].reshape(-1),
+            "y-position": cts_dense_labels[:, :, 1].reshape(-1),
+            "z-position": cts_dense_labels[:, :, 2].reshape(-1),
+            "x-velocity": cts_dense_labels[:, :, 3].reshape(-1),
+            "y-velocity": cts_dense_labels[:, :, 4].reshape(-1),
+            "z-velocity": cts_dense_labels[:, :, 5].reshape(-1),
+            "sin": cts_dense_labels[:, :, 6].reshape(-1),
+            "cos": cts_dense_labels[:, :, 7].reshape(-1),
+            "orientation": dense_labels[:, :, 6].reshape(-1),
+        }
+        for task_name, target in targets.items():
+            pred = readout_by_name[task_name](context)
+            predictions.setdefault(task_name, []).append(pred.detach().cpu())
+            targets_all.setdefault(task_name, []).append(target.detach().cpu())
+
+    print(f"cross_decode_sprites={list(args.cross_decode_sprite_indices)} readout={readout_path}")
+    for task_name, pred_parts in predictions.items():
+        pred = torch.cat(pred_parts, dim=0)
+        target = torch.cat(targets_all[task_name], dim=0)
+        if task_name == "orientation":
+            value = (pred.argmax(dim=1) == target).float().mean().item()
+            metric_name = "acc"
+        else:
+            value = compute_r2(target, pred.reshape(-1))
+            metric_name = "r2"
+        print(f"cross_decode_{task_name}_{metric_name}={value:.4f}")
 
 
 def offline_greedy_linear_regression(

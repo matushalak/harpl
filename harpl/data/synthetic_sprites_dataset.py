@@ -62,6 +62,7 @@ class SpriteVideoDataset(Dataset):
         device='cpu',
         seed=42,
         max_sprites=None,  # parameter for limiting sprite count
+        sprite_indices=None,
         sprite_img_dir="animals", # parameter for sprite image directory
         exclude_latent_regions=False,  # parameter for excluding latent regions (usually during training)
         discretize_latents=False,  # parameter for discretizing latent space
@@ -99,6 +100,7 @@ class SpriteVideoDataset(Dataset):
         self.device = device
         self.seed = seed
         self.max_sprites = max_sprites
+        self.sprite_indices = tuple(int(idx) for idx in sprite_indices) if sprite_indices is not None else None
         self.exclude_latent_regions = exclude_latent_regions
         self.sprite_img_dir = sprite_img_dir
         self.discretize_latents = discretize_latents
@@ -276,9 +278,19 @@ class SpriteVideoDataset(Dataset):
         sprite_paths = sorted(glob.glob(os.path.join(self.data_dir, self.sprite_img_dir, "sprite_*.png")))
         assert len(sprite_paths) > 0, f"No sprites found in {self.data_dir}/{self.sprite_img_dir}"
         
-        # Limit sprites if max_sprites is specified
-        if self.max_sprites is not None:
+        if self.sprite_indices is not None:
+            selected = []
+            for idx in self.sprite_indices:
+                if idx < 0 or idx >= len(sprite_paths):
+                    raise ValueError(f"sprite index {idx} is out of range for {len(sprite_paths)} sprites")
+                selected.append(sprite_paths[idx])
+            sprite_paths = selected
+            self.sprite_class_ids = list(self.sprite_indices)
+        elif self.max_sprites is not None:
             sprite_paths = sprite_paths[:self.max_sprites]
+            self.sprite_class_ids = list(range(len(sprite_paths)))
+        else:
+            self.sprite_class_ids = list(range(len(sprite_paths)))
         
         sprites = []
         for path in sprite_paths:
@@ -519,7 +531,7 @@ class SpriteVideoDataset(Dataset):
         for i in range(self.num_sequences):
             # Randomly select a sprite
             sprite_idx = self.rng.randint(0, len(self.sprites))
-            labels['sprite_idx'][i] = sprite_idx
+            labels['sprite_idx'][i] = self.sprite_class_ids[sprite_idx]
             
             # Uniform sampling of velocities in all directions
             # Sample x velocity directly from [-max_vel, max_vel]
@@ -810,7 +822,7 @@ class SpriteVideoDataset(Dataset):
         for i in range(self.num_sequences):
             # Randomly select a sprite
             sprite_idx = self.rng.randint(0, len(self.sprites))
-            labels['sprite_idx'][i] = sprite_idx
+            labels['sprite_idx'][i] = self.sprite_class_ids[sprite_idx]
             
             # Sample initial velocities in discrete space
             discrete_xvel = self.rng.randint(-max_discrete_xvel, max_discrete_xvel + 1)

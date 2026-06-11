@@ -13,9 +13,14 @@ from harpl.data.attention_sprites_dataset import (
     MovingAnimalAttentionDataset,
     TASK_TO_ID,
 )
+from harpl.scripts.eval_utils import (
+    evaluate_attention_model,
+    evaluate_cross_decode_sprites,
+    evaluate_pretrained_attention_tasks,
+)
 from harpl.networks.harpl import (
     ARPLmodel,
-    ChannelAttentionDecoder,
+    AttentionDecoder,
     ClassificationHead,
 )
 from harpl.networks.utils import additional_data_process, prepare_model
@@ -34,9 +39,6 @@ from harpl.scripts.utils import (
     seed_everything,
     select_device,
 )
-
-
-TRAINABLE_PREFIXES = ("head.", "decoder.", "task_embedding.", "class_embedding.")
 
 
 def _normalize_output_size(value):
@@ -62,12 +64,23 @@ def _parse_task_values(values):
     return parsed
 
 
-def _dataloader_kwargs(args, device):
+def _parse_optional_scalar_or_channels(value):
+    if value is None:
+        return None
+    value = list(value)
+    if len(value) == 1:
+        return value[0]
+    if len(value) == 3:
+        return tuple(value)
+    raise ValueError("Expected either one scalar value or three channel values.")
+
+
+def _dataloader_kwargs(args, device, shuffle=True):
     if torch.device(args.spritevid_device).type == "cuda" and args.num_workers != 0:
         raise ValueError("CUDA attention dataset rendering requires --num_workers 0.")
     kwargs = {
         "batch_size": args.batch_size,
-        "shuffle": True,
+        "shuffle": shuffle,
         "num_workers": args.num_workers,
         "pin_memory": args.pin_memory and device.type == "cuda",
         "drop_last": False,
@@ -92,14 +105,30 @@ def _infer_context_dim(integrator, fallback):
     return int(fallback)
 
 
-def _infer_first_encoder_channels(encoder):
-    backbone = getattr(encoder, "backbone", None)
-    if backbone is None:
-        raise TypeError("Cannot infer attention channels from an encoder without a backbone.")
-    for module in backbone.modules():
-        if isinstance(module, nn.Conv2d):
-            return int(module.out_channels)
-    raise TypeError("Cannot infer attention channels because the encoder has no Conv2d layer.")
+def _infer_first_encoder_shape(encoder, input_size, n_in_channels):
+    encoder_first, _, _ = ARPLmodel._split_encoder(encoder)
+    encoder_first.eval()
+    height, width = _normalize_output_size(input_size)
+    dummy = torch.zeros(1, 1, n_in_channels, height, width)
+    with torch.no_grad():
+        features = ARPLmodel._forward_video_layers(encoder_first, dummy)
+    if features.ndim != 5:
+        raise RuntimeError(
+            "Expected first encoder block to return spatial features shaped "
+            f"(B, T, C, H, W), got {tuple(features.shape)}"
+        )
+    return tuple(int(dim) for dim in features.shape[2:])
+
+
+def _attention_output_shape(first_encoder_shape, attention_dims):
+    channels, height, width = first_encoder_shape
+    if attention_dims == "features":
+        return (channels, 1, 1)
+    if attention_dims == "spatial":
+        return (1, height, width)
+    if attention_dims == "features+spatial":
+        return (channels, height, width)
+    raise ValueError("--attention_dims must be one of: features, spatial, features+spatial")
 
 
 def _infer_predictor_output_dim(predictor, fallback):
@@ -110,6 +139,54 @@ def _infer_predictor_output_dim(predictor, fallback):
     if last_linear is not None:
         return int(last_linear.out_features)
     return int(fallback)
+
+
+def _default_readout_path(model_path):
+    return Path(model_path).parent / "online_ctx_readout.pt"
+
+
+def _load_frozen_classification_head(head, readout_path, device):
+    readout_path = Path(readout_path)
+    if not readout_path.exists():
+        raise FileNotFoundError(
+            f"Frozen online readout checkpoint not found: {readout_path}. "
+            "Pass --attention_readout_path to use a different readout."
+        )
+    state_dict = torch.load(readout_path, map_location="cpu")
+    if not isinstance(state_dict, dict):
+        raise TypeError(f"Expected state_dict-like readout checkpoint, got {type(state_dict).__name__}.")
+
+    candidates = [
+        ("0.layers.readout.weight", "0.layers.readout.bias"),
+        ("layers.readout.weight", "layers.readout.bias"),
+        ("readout.weight", "readout.bias"),
+    ]
+    for weight_key, bias_key in candidates:
+        if weight_key in state_dict and bias_key in state_dict:
+            readout_state = {
+                "weight": state_dict[weight_key],
+                "bias": state_dict[bias_key],
+            }
+            break
+    else:
+        raise KeyError(
+            "Could not find a sprite-classification readout in "
+            f"{readout_path}; expected 0.layers.readout.*, layers.readout.*, or readout.* keys."
+        )
+
+    expected_weight_shape = tuple(head.readout.weight.shape)
+    actual_weight_shape = tuple(readout_state["weight"].shape)
+    if actual_weight_shape != expected_weight_shape:
+        raise RuntimeError(
+            f"Readout weight shape {actual_weight_shape} does not match attention head "
+            f"shape {expected_weight_shape}."
+        )
+    head.readout.load_state_dict(readout_state)
+    head.to(device)
+    head.eval()
+    for param in head.parameters():
+        param.requires_grad_(False)
+    return readout_path
 
 
 def _make_attention_targets(task_info, seq_len, cue_frames):
@@ -164,27 +241,52 @@ def _mps_memory_stats(device):
     return stats
 
 
-def _prepare_attention_dataset(args):
+def _prepare_attention_dataset(args, split="train", num_sequences=None):
     output_size = _normalize_output_size(args.spritevid_output_size)
+    base_output_size = _normalize_output_size(args.attention_base_output_size)
     return MovingAnimalAttentionDataset(
         data_dir=args.data_input_dir,
+        split=split,
         task=args.attention_task,
         tasks=_parse_task_values(args.attention_tasks),
         output_size=output_size,
+        base_output_size=base_output_size,
+        scale_pixel_parameters=args.attention_scale_pixel_parameters,
         seq_len=args.seq_len,
-        num_sequences=args.num_sequences,
+        num_sequences=args.num_sequences if num_sequences is None else num_sequences,
         sprite_img_dir=args.sprite_img_dir,
         max_sprites=args.spritevid_max_sprites,
         seed=args.seed,
+        background=args.attention_background,
         device=args.spritevid_device,
         noise_type=args.spritevid_noise_type,
         noise_level=args.spritevid_noise_level,
+        training_noise_level=args.attention_training_noise_level,
+        object_recognition_noise_level=args.attention_object_recognition_noise_level,
         freeze_noise=args.spritevid_frozen_noise,
         noise_on_top=args.sprite_noise_on_top,
         popout_mode=args.popout_mode,
         num_distractors=args.num_distractors,
         crowd_size=args.crowd_size,
         cue_frames=args.cue_frames,
+        occluder_count=args.attention_occluder_count,
+        occluder_min_size=args.attention_occluder_min_size,
+        occluder_max_size=args.attention_occluder_max_size,
+        fixation_size=args.attention_fixation_size,
+        scale_range=tuple(args.attention_scale_range),
+        velocity_range=tuple(args.attention_velocity_range),
+        scale_velocity_range=tuple(args.attention_scale_velocity_range),
+        slow_speed_range=tuple(args.attention_slow_speed_range),
+        fast_speed_range=tuple(args.attention_fast_speed_range),
+        angular_speed_range=tuple(args.attention_angular_speed_range),
+        slow_rotation_speed_range=tuple(args.attention_slow_rotation_speed_range),
+        fast_rotation_speed_range=tuple(args.attention_fast_rotation_speed_range),
+        velocity_popout_kind=args.attention_velocity_popout_kind,
+        rotation_popout_kind=args.attention_rotation_popout_kind,
+        normalize=args.attention_normalize,
+        mean=_parse_optional_scalar_or_channels(args.attention_mean),
+        std=_parse_optional_scalar_or_channels(args.attention_std),
+        return_metadata=args.attention_return_metadata,
     )
 
 
@@ -238,11 +340,19 @@ def _prepare_arpl_model(args, dataset, device):
 
     context_dim = _infer_context_dim(repl.integrator, args.ctx_dim)
     predictor_output_dim = _infer_predictor_output_dim(repl.predictor, context_dim)
-    attention_channels = _infer_first_encoder_channels(repl.encoder)
+    first_encoder_shape = _infer_first_encoder_shape(
+        repl.encoder,
+        output_size,
+        n_in_channels=1 if args.grayscale else 3,
+    )
+    attention_shape = _attention_output_shape(first_encoder_shape, args.attention_dims)
     head = ClassificationHead(input_dim=context_dim, num_classes=len(dataset.sprites))
-    decoder = ChannelAttentionDecoder(
-        input_dim=2 * predictor_output_dim,
-        output_dim=attention_channels,
+    readout_path = args.attention_readout_path or _default_readout_path(args.model_path)
+    _load_frozen_classification_head(head, readout_path, device)
+    decoder = AttentionDecoder(
+        input_dim=predictor_output_dim,
+        output_dim=None,
+        output_shape=attention_shape,
         hidden_dim=args.attention_hidden_dim or context_dim,
         n_hidden_layers=args.attention_decoder_layers,
     )
@@ -258,7 +368,12 @@ def _prepare_arpl_model(args, dataset, device):
         freeze_repl=True,
         eval_frozen=True,
         decoder_input_dim=predictor_output_dim,
+        use_task_embedding=getattr(args, "attention_use_task_embedding", True),
+        class_prompt_value=getattr(args, "attention_class_prompt_value", 10.0),
     )
+    model.head.eval()
+    for param in model.head.parameters():
+        param.requires_grad_(False)
     return model.to(device)
 
 
@@ -273,20 +388,28 @@ def _prepare_optimizer(args, model):
     raise ValueError(f"Unknown optimizer: {args.optimizer}")
 
 
-def _validate_trainable_scope(model):
+def _expected_trainable_prefixes(args):
+    prefixes = ["decoder.", "class_feedback."]
+    if getattr(args, "attention_use_task_embedding", True):
+        prefixes.append("task_embedding.")
+    return tuple(prefixes)
+
+
+def _validate_trainable_scope(model, args):
     trainable_named = [(name, param) for name, param in model.named_parameters() if param.requires_grad]
     frozen_named = [(name, param) for name, param in model.named_parameters() if not param.requires_grad]
+    expected_prefixes = _expected_trainable_prefixes(args)
     unexpected = [
         name
         for name, _ in trainable_named
-        if not name.startswith(TRAINABLE_PREFIXES)
+        if not name.startswith(expected_prefixes)
     ]
     if unexpected:
         raise RuntimeError(
-            "Unexpected trainable parameters outside attention/readout modules: "
+            "Unexpected trainable parameters outside attention decoder/feedback modules: "
             + ", ".join(unexpected)
         )
-    for prefix in TRAINABLE_PREFIXES:
+    for prefix in expected_prefixes:
         if not any(name.startswith(prefix) for name, _ in trainable_named):
             raise RuntimeError(f"No trainable parameters found under expected prefix {prefix!r}.")
     return trainable_named, frozen_named
@@ -308,9 +431,13 @@ def train(args, device):
         torch.set_num_threads(args.torch_num_threads)
 
     dataset = _prepare_attention_dataset(args)
-    loader = DataLoader(dataset, **_dataloader_kwargs(args, device))
+    val_dataset = _prepare_attention_dataset(args, split="val", num_sequences=args.attention_val_sequences)
+    test_dataset = _prepare_attention_dataset(args, split="test", num_sequences=args.attention_test_sequences)
+    loader = DataLoader(dataset, **_dataloader_kwargs(args, device, shuffle=True))
+    val_loader = DataLoader(val_dataset, **_dataloader_kwargs(args, device, shuffle=False))
+    test_loader = DataLoader(test_dataset, **_dataloader_kwargs(args, device, shuffle=False))
     model = _prepare_arpl_model(args, dataset, device)
-    trainable_named, frozen_named = _validate_trainable_scope(model)
+    trainable_named, frozen_named = _validate_trainable_scope(model, args)
     optimizer = _prepare_optimizer(args, model)
     _validate_optimizer_scope(optimizer, trainable_named)
     criterion = nn.CrossEntropyLoss()
@@ -336,6 +463,7 @@ def train(args, device):
         model.encoder_tail.eval()
         model.integrator.eval()
         model.predictor.eval()
+        model.head.eval()
 
         total_loss = 0.0
         total_correct = 0
@@ -413,6 +541,17 @@ def train(args, device):
             log_variable(avg_loss, "Attention/train_loss_epoch", commit=False)
             log_variable(avg_acc, "Attention/train_acc_epoch", commit=False)
             log_variable(total_batches, "Attention/batches_epoch", commit=True)
+        if args.attention_eval_every and (epoch + 1) % args.attention_eval_every == 0:
+            evaluate_attention_model(
+                args,
+                model,
+                val_loader,
+                device,
+                "val",
+                _make_attention_targets,
+                _move_labels,
+                use_attention=True,
+            )
         progress.close()
         _release_memory(device)
 
@@ -436,7 +575,7 @@ def train(args, device):
             f"above --freeze_tolerance {args.freeze_tolerance}."
         )
     if trainable_delta <= 0.0:
-        raise RuntimeError("No trainable attention/head parameter changed during training.")
+        raise RuntimeError("No trainable attention decoder or feedback parameter changed during training.")
 
     if args.checkpoint_dir is not None:
         checkpoint_dir = Path(args.checkpoint_dir) / args.experiment_name
@@ -444,6 +583,16 @@ def train(args, device):
         torch.save(model.state_dict(), checkpoint_dir / "attention_model_final.pt")
         torch.save(optimizer.state_dict(), checkpoint_dir / "attention_optimizer_final.pt")
         print(f"saved_checkpoint={checkpoint_dir / 'attention_model_final.pt'}")
+    evaluate_attention_model(
+        args,
+        model,
+        test_loader,
+        device,
+        "test",
+        _make_attention_targets,
+        _move_labels,
+        use_attention=True,
+    )
 
 
 def build_parser():
@@ -454,18 +603,19 @@ def build_parser():
     add_model_args(parser)
     add_optimization_args(parser)
 
+    # Paths and sprite rendering.
     parser.add_argument("--model_path", type=str, required=True, help="Pretrained RePL checkpoint.")
     parser.add_argument("--data_input_dir", type=str, default="datasets")
     parser.add_argument("--sprite_img_dir", type=str, default="animals")
     parser.add_argument("--spritevid_max_sprites", type=int, default=8)
     parser.add_argument("--spritevid_output_size", type=int, nargs="+", default=[64])
-    parser.add_argument("--spritevid_noise_type", choices=["gaussian", "salt_pepper", "none"], default="gaussian")
-    parser.add_argument("--spritevid_noise_level", type=float, default=0.1)
-    parser.add_argument("--spritevid_frozen_noise", action="store_true")
-    parser.add_argument("--sprite_noise_on_top", action="store_true")
     parser.add_argument("--spritevid_device", type=str, default="cpu")
+
+    # Dataset size and loader behavior.
     parser.add_argument("--seq_len", type=int, default=32)
     parser.add_argument("--num_sequences", type=int, default=16000)
+    parser.add_argument("--attention_val_sequences", type=int, default=1024)
+    parser.add_argument("--attention_test_sequences", type=int, default=1024)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=0)
@@ -473,17 +623,69 @@ def build_parser():
     parser.add_argument("--persistent-workers", "--persistent_workers", dest="persistent_workers", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--prefetch-factor", "--prefetch_factor", dest="prefetch_factor", type=int, default=None)
     parser.add_argument("--device", type=str, default="auto")
+
+    # Attention dataset noise and normalization.
+    parser.add_argument("--spritevid_noise_type", choices=["gaussian", "salt_pepper", "none"], default="gaussian")
+    parser.add_argument("--spritevid_noise_level", type=float, default=0.1)
+    parser.add_argument("--spritevid_frozen_noise", action="store_true")
+    parser.add_argument("--sprite_noise_on_top", action="store_true")
+    parser.add_argument("--attention_training_noise_level", type=float, default=0.1)
+    parser.add_argument("--attention_object_recognition_noise_level", type=float, default=0.35)
+    parser.add_argument("--attention_normalize", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--attention_mean", type=float, nargs="+", default=None, help="Scalar or three channel means for attention dataset normalization.")
+    parser.add_argument("--attention_std", type=float, nargs="+", default=None, help="Scalar or three channel stds for attention dataset normalization.")
+
+    # Base model input options.
     parser.add_argument("--grayscale", action="store_true")
     parser.add_argument("--flatten_images", action="store_true")
     parser.add_argument("--return_full_features", action=argparse.BooleanOptionalAction, default=None)
+
+    # Attention task composition.
     parser.add_argument("--attention_task", default="mixed")
     parser.add_argument("--attention_tasks", nargs="*", default=None)
+    parser.add_argument("--attention_base_output_size", type=int, nargs="+", default=[64])
+    parser.add_argument("--attention_scale_pixel_parameters", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--attention_background", type=float, default=0.5)
     parser.add_argument("--popout_mode", choices=["class", "rotation", "velocity", "mixed"], default="class")
     parser.add_argument("--num_distractors", type=int, default=1)
     parser.add_argument("--crowd_size", type=int, default=2)
     parser.add_argument("--cue_frames", type=int, default=5)
+
+    # Occluders and fixation cue.
+    parser.add_argument("--attention_occluder_count", type=int, default=4)
+    parser.add_argument("--attention_occluder_min_size", type=int, default=8)
+    parser.add_argument("--attention_occluder_max_size", type=int, default=18)
+    parser.add_argument("--attention_fixation_size", type=float, default=3.0)
+
+    # Motion ranges. Defaults match the continuous SpriteVideoDataset where possible.
+    parser.add_argument("--attention_scale_range", type=float, nargs=2, default=[0.2, 1.0])
+    parser.add_argument("--attention_velocity_range", type=float, nargs=2, default=[-8.0, 8.0], help="Per-axis x/y velocity component range in pixels per frame.")
+    parser.add_argument("--attention_scale_velocity_range", type=float, nargs=2, default=[-0.125, 0.125], help="Z/scale velocity range per frame.")
+    parser.add_argument("--attention_angular_speed_range", type=float, nargs=2, default=[-30.0, 30.0])
+
+    # Popout ranges. Slow/fast speed ranges are absolute movement or rotation speeds.
+    parser.add_argument("--attention_slow_speed_range", type=float, nargs=2, default=[0.8, 2.0])
+    parser.add_argument("--attention_fast_speed_range", type=float, nargs=2, default=[4.8, 7.0])
+    parser.add_argument("--attention_velocity_popout_kind", choices=["fast", "slow", "mixed"], default="fast")
+    parser.add_argument("--attention_slow_rotation_speed_range", type=float, nargs=2, default=[3.0, 10.0])
+    parser.add_argument("--attention_fast_rotation_speed_range", type=float, nargs=2, default=[20.0, 30.0])
+    parser.add_argument("--attention_rotation_popout_kind", choices=["fast", "slow", "mixed"], default="fast")
+    parser.add_argument("--attention_return_metadata", action=argparse.BooleanOptionalAction, default=False)
+
+    # Attention model and evaluation.
     parser.add_argument("--attention_hidden_dim", type=int, default=None)
     parser.add_argument("--attention_decoder_layers", type=int, default=1)
+    parser.add_argument("--attention_dims", choices=["features", "spatial", "features+spatial"], default="features+spatial")
+    parser.add_argument("--attention_readout_path", type=str, default=None, help="Frozen online sprite-classification readout checkpoint. Defaults to online_ctx_readout.pt beside --model_path.")
+    parser.add_argument("--attention_use_task_embedding", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--attention_class_prompt_value", type=float, default=10.0)
+    parser.add_argument("--attention_eval_every", type=int, default=5, help="Run attention validation every N epochs; 0 disables periodic validation.")
+    parser.add_argument("--eval_pretrained_attention_tasks", action="store_true", help="Evaluate the frozen pretrained model and online readout on each attention task with attention disabled, then exit.")
+    parser.add_argument("--eval_cross_decode_sprites", action="store_true", help="Evaluate frozen pretrained ctx readouts on generated held-out sprite identities, then exit.")
+    parser.add_argument("--cross_decode_sprite_indices", type=int, nargs="+", default=[8, 9])
+    parser.add_argument("--cross_decode_sequences", type=int, default=512)
+    parser.add_argument("--cross_decode_readout_path", type=str, default=None, help="Readout checkpoint for cross-decoding. Defaults to online_ctx_readout.pt beside --model_path.")
+    parser.add_argument("--cross_decode_readout_stats_path", type=str, default=None, help="Optional mean/std stats for offline readouts.")
     parser.add_argument("--max_batches", type=int, default=0, help="Stop each epoch after this many batches; 0 means full epoch.")
     parser.add_argument("--freeze_tolerance", type=float, default=0.0)
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints")
@@ -527,7 +729,27 @@ def main(argv=None):
     init_logger(args)
     device = select_device(args.device)
     try:
-        train(args, device)
+        if args.eval_pretrained_attention_tasks:
+            evaluate_pretrained_attention_tasks(
+                args,
+                device,
+                _prepare_attention_dataset,
+                _prepare_arpl_model,
+                _dataloader_kwargs,
+                _make_attention_targets,
+                _move_labels,
+            )
+        elif args.eval_cross_decode_sprites:
+            evaluate_cross_decode_sprites(
+                args,
+                device,
+                _prepare_attention_dataset,
+                _prepare_arpl_model,
+                _default_readout_path,
+                _normalize_output_size,
+            )
+        else:
+            train(args, device)
     finally:
         close_logger()
 

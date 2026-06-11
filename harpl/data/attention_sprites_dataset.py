@@ -47,6 +47,7 @@ class _ObjectSpec:
     rotations: np.ndarray
     scales: np.ndarray
     velocity: np.ndarray
+    scale_velocity: float
     angular_speed: float
     speed: float
 
@@ -65,6 +66,7 @@ class MovingAnimalAttentionDataset(Dataset):
     no object-object collision response, so sprites pass over each other.
     """
 
+    valid_splits = ("train", "val", "test")
     valid_tasks = tuple(TASK_TO_ID) + ("mixed",)
     valid_popout_modes = ("class", "rotation", "velocity", "mixed")
     valid_noise_types = (None, "gaussian", "salt_pepper")
@@ -72,6 +74,7 @@ class MovingAnimalAttentionDataset(Dataset):
     def __init__(
         self,
         data_dir: str | Path,
+        split: str = "train",
         task: str | Iterable[int | str] = "mixed",
         tasks: Iterable[int | str] | None = None,
         output_size: tuple[int, int] = (64, 64),
@@ -98,13 +101,16 @@ class MovingAnimalAttentionDataset(Dataset):
         occluder_min_size: int = 8,
         occluder_max_size: int = 18,
         fixation_size: int = 3,
-        scale_range: tuple[float, float] = (0.5, 1.0),
-        speed_range: tuple[float, float] = (1.25, 4.0),
-        slow_speed_range: tuple[float, float] = (0.8, 2.0),
-        fast_speed_range: tuple[float, float] = (4.8, 7.0),
-        angular_speed_range: tuple[float, float] = (-18.0, 18.0),
-        rotation_popout_speed: float = 16.0,
+        scale_range: tuple[float, float] = (0.2, 1.0),
+        velocity_range: tuple[float, float] = (-8.0, 8.0),
+        scale_velocity_range: tuple[float, float] = (-0.125, 0.125),
+        slow_speed_range: tuple[float, float] = (1.0, 3.0),
+        fast_speed_range: tuple[float, float] = (7.0, 8.0),
+        angular_speed_range: tuple[float, float] = (-30.0, 30.0),
+        slow_rotation_speed_range: tuple[float, float] = (5.0, 15.0),
+        fast_rotation_speed_range: tuple[float, float] = (25.0, 30.0),
         velocity_popout_kind: str = "fast",
+        rotation_popout_kind: str = "fast",
         normalize: bool = False,
         mean: float | tuple[float, float, float] | None = None,
         std: float | tuple[float, float, float] | None = None,
@@ -113,10 +119,14 @@ class MovingAnimalAttentionDataset(Dataset):
         self.task_pool = self._normalize_task_pool(task, tasks)
         if popout_mode not in self.valid_popout_modes:
             raise ValueError(f"popout_mode must be one of {self.valid_popout_modes}")
+        if split not in self.valid_splits:
+            raise ValueError(f"split must be one of {self.valid_splits}")
         if noise_type not in self.valid_noise_types:
             raise ValueError(f"noise_type must be one of {self.valid_noise_types}")
         if velocity_popout_kind not in ("fast", "slow", "mixed"):
             raise ValueError("velocity_popout_kind must be 'fast', 'slow', or 'mixed'")
+        if rotation_popout_kind not in ("fast", "slow", "mixed"):
+            raise ValueError("rotation_popout_kind must be 'fast', 'slow', or 'mixed'")
         if cue_frames < 1:
             raise ValueError("cue_frames must be at least 1")
         if seq_len <= cue_frames:
@@ -127,6 +137,7 @@ class MovingAnimalAttentionDataset(Dataset):
             raise ValueError("num_distractors must be at least 1")
 
         self.data_dir = Path(data_dir)
+        self.split = split
         self.task = self.task_pool[0] if len(self.task_pool) == 1 else "mixed"
         self.tasks = self.task_pool
         self.task_ids = tuple(TASK_TO_ID[task_name] for task_name in self.task_pool)
@@ -155,13 +166,16 @@ class MovingAnimalAttentionDataset(Dataset):
         self.occluder_min_size = self._scale_pixel_int(occluder_min_size)
         self.occluder_max_size = self._scale_pixel_int(occluder_max_size)
         self.fixation_size = self._scale_pixel_float(fixation_size)
-        self.scale_range = self._scale_pixel_range(scale_range)
-        self.speed_range = self._scale_pixel_range(speed_range)
+        self.scale_range = tuple(float(value) for value in scale_range)
+        self.velocity_range = self._scale_pixel_range(velocity_range)
+        self.scale_velocity_range = tuple(float(value) for value in scale_velocity_range)
         self.slow_speed_range = self._scale_pixel_range(slow_speed_range)
         self.fast_speed_range = self._scale_pixel_range(fast_speed_range)
         self.angular_speed_range = angular_speed_range
-        self.rotation_popout_speed = float(rotation_popout_speed)
+        self.slow_rotation_speed_range = tuple(float(value) for value in slow_rotation_speed_range)
+        self.fast_rotation_speed_range = tuple(float(value) for value in fast_rotation_speed_range)
         self.velocity_popout_kind = velocity_popout_kind
+        self.rotation_popout_kind = rotation_popout_kind
         self.normalize = normalize
         self.mean = self._as_channel_array(mean) if mean is not None else None
         self.std = self._as_channel_array(std) if std is not None else None
@@ -184,7 +198,8 @@ class MovingAnimalAttentionDataset(Dataset):
         return self.num_sequences
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor | dict[str, Any]]:
-        rng = np.random.default_rng(self.seed + idx * 9973)
+        split_offset = {"train": 0, "val": 10_000_000, "test": 20_000_000}[self.split]
+        rng = np.random.default_rng(self.seed + split_offset + idx * 9973)
         task = self._choose_task(rng)
         popout_mode = self._choose_popout_mode(rng) if task == "popout" else "none"
 
@@ -345,33 +360,58 @@ class MovingAnimalAttentionDataset(Dataset):
     def _random_scale(self, rng: np.random.Generator) -> float:
         return float(rng.uniform(*self.scale_range))
 
-    def _random_speed(self, rng: np.random.Generator, speed_range: tuple[float, float] | None = None) -> float:
-        speed_range = speed_range or self.speed_range
-        return float(rng.uniform(*speed_range))
+    def _random_velocity(self, rng: np.random.Generator) -> np.ndarray:
+        return rng.uniform(*self.velocity_range, size=2).astype(np.float32)
+
+    def _random_velocity_from_speed_range(
+        self,
+        rng: np.random.Generator,
+        speed_range: tuple[float, float],
+    ) -> np.ndarray:
+        speed = float(rng.uniform(*speed_range))
+        direction = float(rng.uniform(0.0, 2.0 * math.pi))
+        return np.array([math.cos(direction), math.sin(direction)], dtype=np.float32) * speed
+
+    def _random_scale_velocity(self, rng: np.random.Generator) -> float:
+        return float(rng.uniform(*self.scale_velocity_range))
 
     def _random_angular_speed(self, rng: np.random.Generator) -> float:
         return float(rng.uniform(*self.angular_speed_range))
+
+    def _random_signed_speed(self, rng: np.random.Generator, speed_range: tuple[float, float]) -> float:
+        return float(rng.choice([-1.0, 1.0]) * rng.uniform(*speed_range))
 
     def _make_object(
         self,
         rng: np.random.Generator,
         class_id: int,
         speed_range: tuple[float, float] | None = None,
-        speed: float | None = None,
+        velocity: np.ndarray | None = None,
+        scale_velocity: float | None = None,
         angular_speed: float | None = None,
+        angular_speed_range: tuple[float, float] | None = None,
         seq_len: int | None = None,
     ) -> _ObjectSpec:
         seq_len = seq_len or self.seq_len
         scale = self._random_scale(rng)
-        speed = self._random_speed(rng, speed_range) if speed is None else float(speed)
-        direction = float(rng.uniform(0.0, 2.0 * math.pi))
-        velocity = np.array([math.cos(direction), math.sin(direction)], dtype=np.float32) * speed
+        if velocity is None:
+            velocity = (
+                self._random_velocity_from_speed_range(rng, speed_range)
+                if speed_range is not None
+                else self._random_velocity(rng)
+            )
+        velocity = velocity.astype(np.float32)
+        scale_velocity = self._random_scale_velocity(rng) if scale_velocity is None else float(scale_velocity)
+        speed = float(np.linalg.norm(velocity))
+        if angular_speed_range is not None:
+            angular_speed = self._random_signed_speed(rng, angular_speed_range)
         angular_speed = self._random_angular_speed(rng) if angular_speed is None else float(angular_speed)
         positions, rotations, scales = self._roll_trajectory(
             rng,
             seq_len,
             scale,
             velocity,
+            scale_velocity,
             angular_speed,
             class_id=class_id,
         )
@@ -381,6 +421,7 @@ class MovingAnimalAttentionDataset(Dataset):
             rotations=rotations,
             scales=scales,
             velocity=velocity,
+            scale_velocity=scale_velocity,
             angular_speed=angular_speed,
             speed=speed,
         )
@@ -391,14 +432,25 @@ class MovingAnimalAttentionDataset(Dataset):
         seq_len: int,
         scale: float,
         velocity: np.ndarray,
+        scale_velocity: float,
         angular_speed: float,
         class_id: int = 0,
         initial_position: np.ndarray | None = None,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         height, width = self.output_size
-        sprite_radius = self._sprite_radius(class_id, scale)
-        x_min, x_max = sprite_radius + 1.0, width - sprite_radius - 1.0
-        y_min, y_max = sprite_radius + 1.0, height - sprite_radius - 1.0
+        min_scale, max_scale = self.scale_range
+        scale = float(np.clip(scale, min_scale, max_scale))
+
+        def bounds(scale_value: float) -> tuple[float, float, float, float]:
+            sprite_radius = self._sprite_radius(class_id, scale_value)
+            return (
+                sprite_radius + 1.0,
+                width - sprite_radius - 1.0,
+                sprite_radius + 1.0,
+                height - sprite_radius - 1.0,
+            )
+
+        x_min, x_max, y_min, y_max = bounds(scale)
         if initial_position is None:
             pos = np.array([rng.uniform(x_min, x_max), rng.uniform(y_min, y_max)], dtype=np.float32)
         else:
@@ -406,17 +458,29 @@ class MovingAnimalAttentionDataset(Dataset):
             pos[0] = np.clip(pos[0], x_min, x_max)
             pos[1] = np.clip(pos[1], y_min, y_max)
         vel = velocity.astype(np.float32).copy()
+        z_vel = float(scale_velocity)
         initial_rotation = float(rng.uniform(0.0, 360.0))
 
         positions = np.zeros((seq_len, 2), dtype=np.float32)
         rotations = np.zeros(seq_len, dtype=np.float32)
-        scales = np.full(seq_len, scale, dtype=np.float32)
+        scales = np.zeros(seq_len, dtype=np.float32)
 
         for t in range(seq_len):
             positions[t] = pos
             rotations[t] = (initial_rotation + angular_speed * t) % 360.0
+            scales[t] = scale
             if t == seq_len - 1:
                 break
+            next_scale = scale + z_vel
+            if next_scale > max_scale:
+                next_scale = 2.0 * max_scale - next_scale
+                z_vel = -abs(z_vel)
+            elif next_scale < min_scale:
+                next_scale = 2.0 * min_scale - next_scale
+                z_vel = abs(z_vel)
+            next_scale = float(np.clip(next_scale, min_scale, max_scale))
+
+            x_min, x_max, y_min, y_max = bounds(next_scale)
             next_pos = pos + vel
             if next_pos[0] < x_min:
                 next_pos[0] = 2.0 * x_min - next_pos[0]
@@ -430,7 +494,10 @@ class MovingAnimalAttentionDataset(Dataset):
             elif next_pos[1] > y_max:
                 next_pos[1] = 2.0 * y_max - next_pos[1]
                 vel[1] = -abs(vel[1])
+            next_pos[0] = np.clip(next_pos[0], x_min, x_max)
+            next_pos[1] = np.clip(next_pos[1], y_min, y_max)
             pos = next_pos
+            scale = next_scale
 
         return positions, rotations, scales
 
@@ -461,11 +528,15 @@ class MovingAnimalAttentionDataset(Dataset):
                 objects.append(self._make_object(rng, class_id))
         elif mode == "rotation":
             class_ids = self._sample_class_ids(rng, count)
-            base_sign = int(rng.choice([-1, 1]))
+            kind = self.rotation_popout_kind
+            if kind == "mixed":
+                kind = str(rng.choice(["fast", "slow"]))
+            target_range = self.fast_rotation_speed_range if kind == "fast" else self.slow_rotation_speed_range
+            distractor_range = self.slow_rotation_speed_range if kind == "fast" else self.fast_rotation_speed_range
             objects = []
             for obj_idx, class_id in enumerate(class_ids):
-                sign = -base_sign if obj_idx == target_index else base_sign
-                objects.append(self._make_object(rng, class_id, angular_speed=sign * self.rotation_popout_speed))
+                speed_range = target_range if obj_idx == target_index else distractor_range
+                objects.append(self._make_object(rng, class_id, angular_speed_range=speed_range))
         elif mode == "velocity":
             class_ids = self._sample_class_ids(rng, count)
             kind = self.velocity_popout_kind
@@ -524,9 +595,9 @@ class MovingAnimalAttentionDataset(Dataset):
     ) -> _ObjectSpec:
         seq_len = self.seq_len - cue_frames
         scale = self._random_scale(rng)
-        speed = self._random_speed(rng)
-        direction = float(rng.uniform(0.0, 2.0 * math.pi))
-        velocity = np.array([math.cos(direction), math.sin(direction)], dtype=np.float32) * speed
+        velocity = self._random_velocity(rng)
+        scale_velocity = self._random_scale_velocity(rng)
+        speed = float(np.linalg.norm(velocity))
         angular_speed = self._random_angular_speed(rng)
         initial_position = self._sample_border_position(rng, class_id, scale)
         obj_positions, obj_rotations, obj_scales = self._roll_trajectory(
@@ -534,6 +605,7 @@ class MovingAnimalAttentionDataset(Dataset):
             seq_len,
             scale,
             velocity,
+            scale_velocity,
             angular_speed,
             class_id=class_id,
             initial_position=initial_position,
@@ -550,6 +622,7 @@ class MovingAnimalAttentionDataset(Dataset):
             rotations=rotations,
             scales=scales,
             velocity=velocity,
+            scale_velocity=scale_velocity,
             angular_speed=angular_speed,
             speed=speed,
         )
@@ -628,6 +701,7 @@ class MovingAnimalAttentionDataset(Dataset):
             rotations=rotations,
             scales=scales,
             velocity=obj.velocity,
+            scale_velocity=obj.scale_velocity,
             angular_speed=obj.angular_speed,
             speed=obj.speed,
         )
@@ -932,6 +1006,7 @@ class MovingAnimalAttentionDataset(Dataset):
         scales = np.full((self.seq_len, self.max_objects), np.nan, dtype=np.float32)
         visible = np.zeros((self.seq_len, self.max_objects), dtype=bool)
         velocities = np.full((self.max_objects, 2), np.nan, dtype=np.float32)
+        scale_velocities = np.full(self.max_objects, np.nan, dtype=np.float32)
         speeds = np.full(self.max_objects, np.nan, dtype=np.float32)
         angular_speeds = np.full(self.max_objects, np.nan, dtype=np.float32)
         render_order = np.full(self.max_objects, -1, dtype=np.int64)
@@ -945,6 +1020,7 @@ class MovingAnimalAttentionDataset(Dataset):
             scales[:, idx] = obj.scales
             visible[:, idx] = spec["visible"][:, idx]
             velocities[idx] = obj.velocity
+            scale_velocities[idx] = obj.scale_velocity
             speeds[idx] = obj.speed
             angular_speeds[idx] = obj.angular_speed
 
@@ -970,6 +1046,7 @@ class MovingAnimalAttentionDataset(Dataset):
             "scales": torch.from_numpy(scales),
             "visible": torch.from_numpy(visible),
             "velocities": torch.from_numpy(velocities),
+            "scale_velocities": torch.from_numpy(scale_velocities),
             "speeds": torch.from_numpy(speeds),
             "angular_speeds": torch.from_numpy(angular_speeds),
             "render_order": torch.from_numpy(render_order),

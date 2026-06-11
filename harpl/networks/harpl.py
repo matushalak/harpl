@@ -17,20 +17,25 @@ class ClassificationHead(nn.Module):
         return logits
 
 
-class ChannelAttentionDecoder(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim=None, n_hidden_layers=1):
-        super(ChannelAttentionDecoder, self).__init__()
+class AttentionDecoder(nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=None, n_hidden_layers=1, output_shape=None):
+        super(AttentionDecoder, self).__init__()
+        self.output_shape = tuple(output_shape) if output_shape is not None else None
+        flat_output_dim = int(torch.tensor(self.output_shape).prod().item()) if self.output_shape else output_dim
         hidden_dim = hidden_dim or input_dim
         layers = []
         for layer_idx in range(n_hidden_layers):
             in_features = input_dim if layer_idx == 0 else hidden_dim
             layers.append(nn.Linear(in_features, hidden_dim))
             layers.append(nn.ReLU())
-        layers.append(nn.Linear(hidden_dim, output_dim))
+        layers.append(nn.Linear(hidden_dim, flat_output_dim))
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        return torch.tanh(self.layers(x))
+        attention = torch.tanh(self.layers(x))
+        if self.output_shape is not None:
+            attention = attention.reshape(*attention.shape[:-1], *self.output_shape)
+        return attention
 
 
 class ARPLmodel(nn.Module):
@@ -50,13 +55,17 @@ class ARPLmodel(nn.Module):
                  postprocess=None,
                  freeze_repl=True,
                  eval_frozen=True,
-                 decoder_input_dim=None):
+                 decoder_input_dim=None,
+                 use_task_embedding=True,
+                 class_prompt_value=10.0):
         super(ARPLmodel, self).__init__()
         self.preprocess = preprocess
         self.encoder_first, self.encoder_tail, self.encoder_returns_full_features = self._split_encoder(encoder)
         self.postprocess = postprocess
         self.integrator = integrator
         self.predictor = predictor
+        self.use_task_embedding = use_task_embedding
+        self.class_prompt_value = float(class_prompt_value)
 
         if freeze_repl:
             for module in (self.encoder_first, self.encoder_tail, self.integrator, self.predictor):
@@ -67,10 +76,13 @@ class ARPLmodel(nn.Module):
 
         self.head = head
         self.decoder = decoder
-        self.decoder_embedding_dim = decoder_input_dim or head.input_dim
-        self.decoder_input_dim = 2 * self.decoder_embedding_dim
-        self.task_embedding = nn.Embedding(num_tasks, self.decoder_embedding_dim)
-        self.class_embedding = nn.Embedding(head.num_classes, self.decoder_embedding_dim)
+        self.context_dim = head.input_dim
+        self.decoder_input_dim = decoder_input_dim or head.input_dim
+        self.task_embedding = nn.Embedding(num_tasks, self.decoder_input_dim)
+        self.class_feedback = nn.Linear(head.num_classes, self.context_dim, bias=False)
+        if not self.use_task_embedding:
+            for param in self.task_embedding.parameters():
+                param.requires_grad_(False)
 
     @staticmethod
     def _layer_index(name: str) -> int | None:
@@ -139,22 +151,84 @@ class ARPLmodel(nn.Module):
                 attention = attention[:, None, :, None, None]
             elif attention.ndim == 3:
                 attention = attention[:, :, :, None, None]
+            elif attention.ndim != 5:
+                raise RuntimeError(
+                    "attention decoder output for spatial features must be either "
+                    f"(batch, channels), (batch, time, channels), or full-rank (batch, time, channels, height, width); "
+                    f"got {tuple(attention.shape)}"
+                )
         elif target.ndim == 3 and attention.ndim == 2:
             attention = attention[:, None, :]
 
-        if attention.shape[:3] != target.shape[:3]:
+        if attention.ndim != target.ndim:
             raise RuntimeError(
-                "attention decoder output must match the first encoder block over "
+                "attention decoder output rank must match first encoder features after formatting; "
                 f"(batch, time, channels); got {tuple(attention.shape)} for {tuple(target.shape)}"
+            )
+        try:
+            broadcast_shape = torch.broadcast_shapes(attention.shape, target.shape)
+        except RuntimeError as exc:
+            raise RuntimeError(
+                "attention decoder output must be broadcastable to first encoder features; "
+                f"got {tuple(attention.shape)} for {tuple(target.shape)}"
+            ) from exc
+        if tuple(broadcast_shape) != tuple(target.shape):
+            raise RuntimeError(
+                "attention decoder output must broadcast exactly to first encoder features; "
+                f"got {tuple(attention.shape)} for {tuple(target.shape)}"
             )
         return attention
 
-    def forward(self, data, return_logits_only=False):
-        has_task = False
+    def _make_context_feedback(self, task_info, logits_t):
+        if task_info is None:
+            return self.class_feedback(logits_t)
+        task_info = task_info.to(device=logits_t.device, dtype=torch.long)
+        target_class = task_info[:, 1]
+        prompt_mask = task_info[:, 2].to(dtype=torch.bool).view(-1, 1, 1)
+        prompt_logits = torch.zeros_like(logits_t)
+        prompt_logits.scatter_(
+            dim=-1,
+            index=target_class.view(-1, 1, 1),
+            value=self.class_prompt_value,
+        )
+        feedback_logits = torch.where(prompt_mask, prompt_logits, logits_t)
+        return self.class_feedback(feedback_logits)
+
+    def _prepare_task_info(self, task_info, data):
+        if task_info is None:
+            return None
+        task_info = task_info.to(device=data.device, dtype=torch.long)
+        return task_info.unsqueeze(0) if task_info.ndim == 1 else task_info
+
+    def _initial_decoder_state(self, data, use_attention):
+        if not use_attention:
+            return None
+        return torch.zeros(
+            data.size(0),
+            1,
+            self.decoder_input_dim,
+            dtype=data.dtype,
+            device=data.device,
+        )
+
+    def _decoder_input(self, pred, task_info=None):
+        if pred is None:
+            return None
+        pred = pred.unsqueeze(1) if pred.ndim == 2 else pred
+        if pred.ndim != 3 or pred.shape[-1] != self.decoder_input_dim:
+            raise RuntimeError(
+                "predictor output must be the ARPL decoder input and match decoder_input_dim; "
+                f"got {tuple(pred.shape)} with decoder_input_dim={self.decoder_input_dim}"
+            )
+        if self.use_task_embedding and task_info is not None:
+            task_emb = self.task_embedding(task_info[:, 0]).unsqueeze(1)
+            pred = pred + task_emb
+        return pred
+
+    def forward(self, data, return_logits_only=False, use_attention=True):
         task_info = None
         if isinstance(data, (tuple, list)) and len(data) == 2:
             data, task_info = data
-            has_task = True
 
         preprocess_args = {}
         if self.preprocess is not None:
@@ -162,54 +236,19 @@ class ARPLmodel(nn.Module):
 
         zs, cs, ps, ks = [], [], [], []  # lists to store outputs at each timestep
         integrator_hidden_t = getattr(self.integrator, "hidden", None)
-
-        # Visual stream accompanied by prompt for attentional task
-        if has_task:
-            task_info = task_info.to(device=data.device, dtype=torch.long)
-            if task_info.ndim == 1:
-                task_info = task_info.unsqueeze(0)
-            # task info is of shape (B, 3), where
-            #   first column is task ID; and
-            task_id = task_info[:, 0]  # (B, 1)
-            task_emb = self.task_embedding(task_id)  # (B, decoder_embedding_dim)
-            #   second column is target class ID; and
-            #   third column indicates whether target class ID is given as prompt or not
-            prompt_mask = task_info[:, 2].to(dtype=task_emb.dtype).unsqueeze(-1)
-            prompt_emb = self.class_embedding(task_info[:, 1]) * prompt_mask  # (B, decoder_embedding_dim)
-            task_prompt_emb = (task_emb + prompt_emb).unsqueeze(1)  # (B, 1, decoder_embedding_dim)
-            # Initialize p_t for the first timestep
-            p_t = torch.zeros_like(task_prompt_emb)  # (B, 1, decoder_embedding_dim)
-        else:
-            task_prompt_emb = None
-            p_t = None
-
-        L = data.size(1) # sequence length
+        task_info = self._prepare_task_info(task_info, data)
+        p_t = self._initial_decoder_state(data, use_attention)
 
         # Sequential processing of visual stream
-        for t in range(L):
-            # Get the t-th timestep's data
+        for t in range(data.size(1)):
             data_t = data[:, t:t+1, ...]  # (B, 1, C, H, W)
+            decoder_input_t = self._decoder_input(p_t, task_info) if use_attention else None
+            z_t = self.encoder_step(data_t, decoder_input_t)
+            c_t, integrator_hidden_t = self.integrator_step(z_t, integrator_hidden_t)
 
-            # decoder input only if task info is available.
-            if has_task:
-                if p_t.ndim == 2:
-                    p_t = p_t.unsqueeze(1)
-                if p_t.shape != task_prompt_emb.shape:
-                    raise RuntimeError(
-                        "predictor output must match task/prompt embedding shape before ARPL decoder concatenation; "
-                        f"got {tuple(p_t.shape)} and {tuple(task_prompt_emb.shape)}"
-                    )
-                decoder_input_t = torch.cat((task_prompt_emb, p_t), dim=-1)
-            else:
-                decoder_input_t = None
-
-            # process the t-th timestep
-            z_t, c_t, p_t, integrator_hidden_t = self.forward_step(data_t,
-                                                                   integrator_hidden_t,
-                                                                   decoder_input_t
-                                                                   )
-            # classifier based on the context representation at the current timestep
+            # Classifier is intentionally applied before class-prompt feedback.
             k_t = self.head(c_t)  # (B, 1, num_classes)
+            p_t = self.predictor_step(c_t, task_info, use_attention, k_t)
 
             if not return_logits_only:
                 zs.append(z_t)
@@ -227,10 +266,8 @@ class ARPLmodel(nn.Module):
         pred = torch.cat(ps, dim=1)  # (B, L, C*(num_pred_steps=1))
         return z, context_tensor, pred, logits
 
-
-    def forward_step(self,
+    def encoder_step(self,
                      data_t,
-                     integrator_hidden_t=None,
                      decoder_input_t=None):
         z0_t = self._forward_encoder_first(data_t)
         # compute dynamic attention with decoder
@@ -239,15 +276,22 @@ class ARPLmodel(nn.Module):
             z0_t = z0_t * a0_t
         # apply attention on first encoder layer, and let the rest of the encoder process the attended representation
         z_t = self._forward_encoder_tail(z0_t)
-
         if self.postprocess is not None:
             z_t = self.postprocess(z_t)
+        return z_t
 
+    def integrator_step(self,
+                        z_t,
+                        integrator_hidden_t=None):
         backbone = getattr(self.integrator, "backbone")
         if isinstance(backbone, nn.RNNBase):
             context_tensor_t, integrator_hidden_t = backbone(z_t, integrator_hidden_t)
         else:
             context_tensor_t = self.integrator(z_t)
+        return context_tensor_t, integrator_hidden_t
 
-        pred_t = self.predictor(context_tensor_t)  # (B, L, C*num_pred_steps) or (B, L, C*num_pred_steps, H, W)
-        return z_t, context_tensor_t, pred_t, integrator_hidden_t
+    def predictor_step(self, context_t, task_info, use_attention, logits_t=None):
+        if not use_attention:
+            return self.predictor(context_t)
+        context_FB =self._make_context_feedback(task_info, logits_t)
+        return self.predictor(context_t *torch.tanh(context_FB))

@@ -269,29 +269,29 @@ class Conv2dDecoder(DecoderNetwork):
         self.max_pool_size = np.array(max_pool_size)[:, 0] if max_pool_size is not None else np.ones(n_layers)
         self.channel_dim = channel_dim
 
-    def forward(self, x):
+    def forward(self, z):
         """"
-        NOTE: here x and z names should be swapped since we are going from latent to input space
+        NOTE: here x and z names are be swapped since we are going from latent (z) to input space (x)
         """
         # encoded audio sequence is (B, L, C)
-        if len(x.shape) == 3:
+        if len(z.shape) == 3:
             # (B, L, C) -> (B, C, 1, L) -> (B, Cout, H, Lout)
-            z = super().forward(x.transpose(1, 2).unsqueeze(-2))
-            if z.size(1) == 1:
-                return z.squeeze(1).contiguous()
-            return z.contiguous()
+            x = super().forward(z.transpose(1, 2).unsqueeze(-2))
+            if x.size(1) == 1:
+                return x.squeeze(1).contiguous()
+            return x.contiguous()
         # XXX encoded visual feature map is (B, L, C, H, W) for video or (B, C, H, W) for image
-        elif len(x.shape) > 3:
-            is_video = len(x.shape) == 5
+        elif len(z.shape) > 3:
+            is_video = len(z.shape) == 5
             if is_video:
-                L = x.size(1)
+                L = z.size(1)
                 # (B, L, C, H, W) -> (B*L, C, H, W)
-                x = x.reshape(-1, *x.shape[2:])
-            z = super().forward(x)
+                z = z.reshape(-1, *z.shape[2:])
+            x = super().forward(z)
             if is_video:
                 # (B*L, C, H, W) -> (B, L, C, H, W)
-                z = z.reshape(-1, L, z.size(1), z.size(2), z.size(3))
-            return z.contiguous()
+                x = x.reshape(-1, L, x.size(1), x.size(2), x.size(3))
+            return x.contiguous()
 
     def get_output_spatial_shape(self, input_shape):
         shape = input_shape if isinstance(input_shape, int) else input_shape[0]

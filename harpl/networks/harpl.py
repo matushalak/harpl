@@ -32,7 +32,7 @@ class AttentionDecoder(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        attention = torch.tanh(self.layers(x))
+        attention = 1.0 + torch.tanh(self.layers(x))
         if self.output_shape is not None:
             attention = attention.reshape(*attention.shape[:-1], *self.output_shape)
         return attention
@@ -290,6 +290,7 @@ class ARPLmodel(nn.Module):
             context_tensor_t = self.integrator(z_t)
         return context_tensor_t, integrator_hidden_t
 
+    # TODO: context FB should only affect decoder input; data should pass through predictor unaltered
     def predictor_step(self, context_t, task_info, use_attention, logits_t=None):
         if not use_attention:
             return self.predictor(context_t)

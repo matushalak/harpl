@@ -91,6 +91,7 @@ class MovingAnimalAttentionDataset(Dataset):
         noise_level: float | None = None,
         training_noise_level: float = 0.1,
         object_recognition_noise_level: float = 0.35,
+        object_recognition_matches_pretraining: bool = True,
         freeze_noise: bool = False,
         noise_on_top: bool = True,
         popout_mode: str = "class",
@@ -111,7 +112,7 @@ class MovingAnimalAttentionDataset(Dataset):
         fast_rotation_speed_range: tuple[float, float] = (25.0, 30.0),
         velocity_popout_kind: str = "fast",
         rotation_popout_kind: str = "fast",
-        normalize: bool = False,
+        normalize: bool = True,
         mean: float | tuple[float, float, float] | None = None,
         std: float | tuple[float, float, float] | None = None,
         return_metadata: bool = False,
@@ -156,6 +157,7 @@ class MovingAnimalAttentionDataset(Dataset):
         self.noise_level = noise_level
         self.training_noise_level = float(training_noise_level)
         self.object_recognition_noise_level = float(object_recognition_noise_level)
+        self.object_recognition_matches_pretraining = object_recognition_matches_pretraining
         self.freeze_noise = freeze_noise
         self.noise_on_top = noise_on_top
         self.popout_mode = popout_mode
@@ -502,8 +504,11 @@ class MovingAnimalAttentionDataset(Dataset):
         return positions, rotations, scales
 
     def _make_object_recognition(self, rng: np.random.Generator) -> dict[str, Any]:
-        class_id = self._sample_class_ids(rng, 1)[0]
-        target = self._make_object(rng, class_id)
+        if self.object_recognition_matches_pretraining:
+            target = self._make_pretraining_object(rng)
+        else:
+            class_id = self._sample_class_ids(rng, 1)[0]
+            target = self._make_object(rng, class_id)
         visible = np.ones((self.seq_len, 1), dtype=bool)
         return self._spec(
             task="object_recognition",
@@ -513,6 +518,79 @@ class MovingAnimalAttentionDataset(Dataset):
             visible=visible,
             render_order=[0],
             occluders=self._make_occluders(rng),
+        )
+
+    def _make_pretraining_object(self, rng: np.random.Generator) -> _ObjectSpec:
+        """Sample the continuous SpriteVideoDataset object-recognition trajectory.
+
+        This path mirrors SpriteVideoDataset._generate_continuous_trajectories so
+        the single-object attention task can be used as a true pretrained-task
+        control when occluders and extra noise are disabled.
+        """
+        height, width = self.output_size
+        max_vel = 8.0
+        max_zvel = 0.125
+        min_scale, max_scale = 0.2, 1.0
+
+        class_id = self._sample_class_ids(rng, 1)[0]
+        velocity = rng.uniform(-max_vel, max_vel, size=2).astype(np.float32)
+        scale_velocity = float(rng.uniform(-max_zvel, max_zvel))
+        angular_speed = float(rng.uniform(-30.0, 30.0))
+
+        padding = 8
+        pos_x = float(rng.integers(padding, width - padding))
+        pos_y = float(rng.integers(padding, height - padding))
+        scale = float(rng.uniform(min_scale, max_scale))
+        initial_rotation = float(rng.uniform(0.0, 360.0))
+
+        positions = np.zeros((self.seq_len, 2), dtype=np.float32)
+        rotations = np.zeros(self.seq_len, dtype=np.float32)
+        scales = np.zeros(self.seq_len, dtype=np.float32)
+
+        x_vel = float(velocity[0])
+        y_vel = float(velocity[1])
+        z_vel = scale_velocity
+        for t in range(self.seq_len):
+            if t > 0:
+                pos_x = float(positions[t - 1, 0] + x_vel)
+                pos_y = float(positions[t - 1, 1] + y_vel)
+                scale = float(scales[t - 1] + z_vel)
+                padding_t = int(8 * (scale / max_scale))
+
+                if pos_x >= width - padding_t:
+                    x_vel = -abs(x_vel)
+                    pos_x = 2.0 * (width - padding_t) - pos_x
+                elif pos_x < padding_t:
+                    x_vel = abs(x_vel)
+                    pos_x = 2.0 * padding_t - pos_x
+
+                if pos_y >= height - padding_t:
+                    y_vel = -abs(y_vel)
+                    pos_y = 2.0 * (height - padding_t) - pos_y
+                elif pos_y < padding_t:
+                    y_vel = abs(y_vel)
+                    pos_y = 2.0 * padding_t - pos_y
+
+                if scale >= max_scale:
+                    z_vel = -abs(z_vel)
+                    scale = 2.0 * max_scale - scale
+                elif scale <= min_scale:
+                    z_vel = abs(z_vel)
+                    scale = 2.0 * min_scale - scale
+
+            positions[t] = (pos_x, pos_y)
+            rotations[t] = initial_rotation + angular_speed * t
+            scales[t] = scale
+
+        return _ObjectSpec(
+            class_id=class_id,
+            positions=positions,
+            rotations=rotations,
+            scales=scales,
+            velocity=velocity,
+            scale_velocity=scale_velocity,
+            angular_speed=angular_speed,
+            speed=float(np.linalg.norm(velocity)),
         )
 
     def _make_popout(self, rng: np.random.Generator, mode: str) -> dict[str, Any]:

@@ -704,6 +704,10 @@ def evaluate_attention_model(
     total_correct = 0
     total_items = 0
     total_batches = 0
+    object_seq_loss = 0.0
+    object_seq_correct = 0
+    object_seq_items = 0
+    object_seq_batches = 0
     for video, task_info in loader:
         video = video.to(device, non_blocking=non_blocking)
         task_info = move_labels(task_info, device, non_blocking=non_blocking)
@@ -715,13 +719,33 @@ def evaluate_attention_model(
         total_correct += (preds == targets[mask]).sum().item()
         total_items += int(mask.sum().item())
         total_batches += 1
+
+        object_mask = task_info[:, 0] == TASK_TO_ID["object_recognition"]
+        if object_mask.any():
+            seq_logits = logits[object_mask].mean(dim=1)
+            seq_targets = task_info[object_mask, 1]
+            object_seq_loss += criterion(seq_logits, seq_targets).item()
+            object_seq_correct += (seq_logits.argmax(dim=1) == seq_targets).sum().item()
+            object_seq_items += int(seq_targets.numel())
+            object_seq_batches += 1
     avg_loss = total_loss / max(total_batches, 1)
     avg_acc = total_correct / max(total_items, 1)
     suffix = "attention" if use_attention else "no_attention"
     print(f"{split_name}_{suffix}_loss={avg_loss:.6f} {split_name}_{suffix}_acc={avg_acc:.4f} batches={total_batches}")
+    if object_seq_items > 0:
+        avg_object_seq_loss = object_seq_loss / max(object_seq_batches, 1)
+        avg_object_seq_acc = object_seq_correct / object_seq_items
+        print(
+            f"{split_name}_{suffix}_object_seq_loss={avg_object_seq_loss:.6f} "
+            f"{split_name}_{suffix}_object_seq_acc={avg_object_seq_acc:.4f} "
+            f"items={object_seq_items}"
+        )
     if not args.nolog:
         log_variable(avg_loss, f"Attention/{split_name}_{suffix}_loss", commit=False)
         log_variable(avg_acc, f"Attention/{split_name}_{suffix}_acc", commit=True)
+        if object_seq_items > 0:
+            log_variable(avg_object_seq_loss, f"Attention/{split_name}_{suffix}_object_seq_loss", commit=False)
+            log_variable(avg_object_seq_acc, f"Attention/{split_name}_{suffix}_object_seq_acc", commit=True)
     return avg_loss, avg_acc
 
 

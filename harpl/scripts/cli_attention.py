@@ -13,6 +13,7 @@ from harpl.data.attention_sprites_dataset import (
     MovingAnimalAttentionDataset,
     TASK_TO_ID,
 )
+from harpl.data.synthetic_sprites_dataset import SpriteVideoDataset
 from harpl.scripts.eval_utils import (
     evaluate_attention_model,
     evaluate_cross_decode_sprites,
@@ -23,6 +24,7 @@ from harpl.networks.harpl import (
     AttentionDecoder,
     ClassificationHead,
 )
+from harpl.networks.backbones import Conv2dDecoder
 from harpl.networks.utils import additional_data_process, prepare_model
 from harpl.scripts.args import (
     add_model_args,
@@ -120,6 +122,17 @@ def _infer_first_encoder_shape(encoder, input_size, n_in_channels):
     return tuple(int(dim) for dim in features.shape[2:])
 
 
+def _infer_full_encoder_shape(encoder, input_size, n_in_channels):
+    encoder.eval()
+    height, width = _normalize_output_size(input_size)
+    dummy = torch.zeros(1, 1, n_in_channels, height, width)
+    with torch.no_grad():
+        features = encoder(dummy)
+    if features.ndim == 5:
+        return tuple(int(dim) for dim in features.shape[2:])
+    return None
+
+
 def _attention_output_shape(first_encoder_shape, attention_dims):
     channels, height, width = first_encoder_shape
     if attention_dims == "features":
@@ -129,6 +142,74 @@ def _attention_output_shape(first_encoder_shape, attention_dims):
     if attention_dims == "features+spatial":
         return (channels, height, width)
     raise ValueError("--attention_dims must be one of: features, spatial, features+spatial")
+
+
+def _expand_encoder_layer_arg(value, n_layers, name):
+    if value is None:
+        return None
+    value = list(value)
+    if len(value) == 1 and n_layers > 1:
+        return value * n_layers
+    if len(value) != n_layers:
+        raise ValueError(f"--{name} must provide 1 value or {n_layers} values.")
+    return value
+
+
+def _encoder_tail_decoder_args(args):
+    if args.enc_n_layers < 2:
+        raise ValueError("--attention_conv2d_decoder requires at least two encoder layers.")
+    n_layers = args.enc_n_layers - 1
+    return {
+        "n_layers": n_layers,
+        "kernel_size": _expand_encoder_layer_arg(args.enc_kernel_size, args.enc_n_layers, "enc_kernel_size")[1:],
+        "stride": _expand_encoder_layer_arg(args.enc_stride, args.enc_n_layers, "enc_stride")[1:],
+        "padding": (
+            _expand_encoder_layer_arg(args.enc_padding, args.enc_n_layers, "enc_padding")[1:]
+            if args.enc_padding is not None
+            else None
+        ),
+        "max_pool_size": (
+            _expand_encoder_layer_arg(args.enc_pool_size, args.enc_n_layers, "enc_pool_size")[1:]
+            if args.enc_pool_size is not None
+            else None
+        ),
+    }
+
+
+class Conv2dAttentionDecoder(nn.Module):
+    """Conv2d attention decoder that mirrors the encoder tail."""
+
+    def __init__(self, input_shape, output_shape, attention_dims, use_batch_norm=False, **decoder_kwargs):
+        super().__init__()
+        self.input_shape = tuple(int(dim) for dim in input_shape)
+        self.output_shape = tuple(int(dim) for dim in output_shape)
+        self.attention_dims = attention_dims
+        self.input_dim = int(torch.tensor(self.input_shape).prod().item())
+        out_channels = 1 if attention_dims == "spatial" else self.output_shape[0]
+        self.decoder = Conv2dDecoder(
+            n_in_channels=self.input_shape[0],
+            channel_dim=out_channels,
+            use_batch_norm=use_batch_norm,
+            return_full_feature_map=True,
+            **decoder_kwargs,
+        )
+
+    def forward(self, x):
+        if x.shape[-1] != self.input_dim:
+            raise RuntimeError(
+                "conv2d attention decoder input must match flattened encoder output; "
+                f"got {x.shape[-1]} features, expected {self.input_dim} from {self.input_shape}"
+            )
+        attention = x.reshape(*x.shape[:-1], *self.input_shape)
+        attention = self.decoder(attention)
+        if self.attention_dims == "features":
+            attention = attention.mean(dim=(-1, -2), keepdim=True)
+        if tuple(attention.shape[-3:]) != self.output_shape:
+            raise RuntimeError(
+                "conv2d attention decoder output shape does not match first encoder features; "
+                f"got {tuple(attention.shape[-3:])}, expected {self.output_shape}"
+            )
+        return 1.0 + torch.tanh(attention)
 
 
 def _infer_predictor_output_dim(predictor, fallback):
@@ -143,6 +224,51 @@ def _infer_predictor_output_dim(predictor, fallback):
 
 def _default_readout_path(model_path):
     return Path(model_path).parent / "online_ctx_readout.pt"
+
+
+def _get_attention_normalization_stats(args, output_size):
+    if hasattr(args, "_attention_normalization_stats"):
+        return args._attention_normalization_stats
+
+    stats_dataset = SpriteVideoDataset(
+        data_dir=args.data_input_dir,
+        split="train",
+        output_size=output_size,
+        seq_len=args.seq_len,
+        num_sequences=args.num_sequences,
+        background=args.attention_background,
+        grayscale=args.grayscale,
+        device=args.spritevid_device,
+        seed=args.seed,
+        max_sprites=args.spritevid_max_sprites,
+        sprite_img_dir=args.sprite_img_dir,
+        discretize_latents=getattr(args, "spritevid_discretize_latents", False),
+        noise_type=args.spritevid_noise_type,
+        noise_intensity=args.spritevid_noise_level,
+        freeze_noise=args.spritevid_frozen_noise,
+        noise_on_top=args.sprite_noise_on_top,
+    )
+    mean = stats_dataset.mean.detach().cpu()
+    std = stats_dataset.std.detach().cpu()
+    if args.grayscale:
+        mean = float(mean.reshape(-1)[0].item())
+        std = float(std.reshape(-1)[0].item())
+    else:
+        mean = tuple(float(value) for value in mean.reshape(-1).tolist())
+        std = tuple(float(value) for value in std.reshape(-1).tolist())
+    args._attention_normalization_stats = (mean, std)
+    print(f"attention_normalization_mean={mean} std={std}")
+    return args._attention_normalization_stats
+
+
+def _attention_normalization_args(args, output_size):
+    if not args.attention_normalize:
+        return False, None, None
+    mean = _parse_optional_scalar_or_channels(args.attention_mean)
+    std = _parse_optional_scalar_or_channels(args.attention_std)
+    if mean is None or std is None:
+        mean, std = _get_attention_normalization_stats(args, output_size)
+    return True, mean, std
 
 
 def _load_frozen_classification_head(head, readout_path, device):
@@ -244,6 +370,7 @@ def _mps_memory_stats(device):
 def _prepare_attention_dataset(args, split="train", num_sequences=None):
     output_size = _normalize_output_size(args.spritevid_output_size)
     base_output_size = _normalize_output_size(args.attention_base_output_size)
+    normalize, mean, std = _attention_normalization_args(args, output_size)
     return MovingAnimalAttentionDataset(
         data_dir=args.data_input_dir,
         split=split,
@@ -263,6 +390,7 @@ def _prepare_attention_dataset(args, split="train", num_sequences=None):
         noise_level=args.spritevid_noise_level,
         training_noise_level=args.attention_training_noise_level,
         object_recognition_noise_level=args.attention_object_recognition_noise_level,
+        object_recognition_matches_pretraining=args.attention_object_recognition_matches_pretraining,
         freeze_noise=args.spritevid_frozen_noise,
         noise_on_top=args.sprite_noise_on_top,
         popout_mode=args.popout_mode,
@@ -283,9 +411,9 @@ def _prepare_attention_dataset(args, split="train", num_sequences=None):
         fast_rotation_speed_range=tuple(args.attention_fast_rotation_speed_range),
         velocity_popout_kind=args.attention_velocity_popout_kind,
         rotation_popout_kind=args.attention_rotation_popout_kind,
-        normalize=args.attention_normalize,
-        mean=_parse_optional_scalar_or_channels(args.attention_mean),
-        std=_parse_optional_scalar_or_channels(args.attention_std),
+        normalize=normalize,
+        mean=mean,
+        std=std,
         return_metadata=args.attention_return_metadata,
     )
 
@@ -349,13 +477,39 @@ def _prepare_arpl_model(args, dataset, device):
     head = ClassificationHead(input_dim=context_dim, num_classes=len(dataset.sprites))
     readout_path = args.attention_readout_path or _default_readout_path(args.model_path)
     _load_frozen_classification_head(head, readout_path, device)
-    decoder = AttentionDecoder(
-        input_dim=predictor_output_dim,
-        output_dim=None,
-        output_shape=attention_shape,
-        hidden_dim=args.attention_hidden_dim or context_dim,
-        n_hidden_layers=args.attention_decoder_layers,
-    )
+    if getattr(args, "attention_conv2d_decoder", False):
+        full_encoder_shape = _infer_full_encoder_shape(
+            repl.encoder,
+            output_size,
+            n_in_channels=1 if args.grayscale else 3,
+        )
+        if full_encoder_shape is None:
+            raise ValueError(
+                "--attention_conv2d_decoder requires the encoder to return full spatial "
+                "features so the predictor output can be reshaped before decoding."
+            )
+        full_encoder_dim = int(torch.tensor(full_encoder_shape).prod().item())
+        if predictor_output_dim != full_encoder_dim:
+            raise ValueError(
+                "--attention_conv2d_decoder requires predictor output dim to match the "
+                f"flattened encoder feature map; got {predictor_output_dim}, expected "
+                f"{full_encoder_dim} from {full_encoder_shape}."
+            )
+        decoder = Conv2dAttentionDecoder(
+            input_shape=full_encoder_shape,
+            output_shape=attention_shape,
+            attention_dims=args.attention_dims,
+            use_batch_norm=args.use_bn,
+            **_encoder_tail_decoder_args(args),
+        )
+    else:
+        decoder = AttentionDecoder(
+            input_dim=predictor_output_dim,
+            output_dim=None,
+            output_shape=attention_shape,
+            hidden_dim=args.attention_hidden_dim or context_dim,
+            n_hidden_layers=args.attention_decoder_layers,
+        )
     model = ARPLmodel(
         encoder=repl.encoder,
         integrator=repl.integrator,
@@ -617,7 +771,7 @@ def build_parser():
     parser.add_argument("--attention_val_sequences", type=int, default=1024)
     parser.add_argument("--attention_test_sequences", type=int, default=1024)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=1)
+    parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--num_workers", type=int, default=0)
     parser.add_argument("--pin-memory", "--pin_memory", dest="pin_memory", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--persistent-workers", "--persistent_workers", dest="persistent_workers", action=argparse.BooleanOptionalAction, default=False)
@@ -631,7 +785,7 @@ def build_parser():
     parser.add_argument("--sprite_noise_on_top", action="store_true")
     parser.add_argument("--attention_training_noise_level", type=float, default=0.1)
     parser.add_argument("--attention_object_recognition_noise_level", type=float, default=0.35)
-    parser.add_argument("--attention_normalize", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--attention_normalize", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--attention_mean", type=float, nargs="+", default=None, help="Scalar or three channel means for attention dataset normalization.")
     parser.add_argument("--attention_std", type=float, nargs="+", default=None, help="Scalar or three channel stds for attention dataset normalization.")
 
@@ -643,19 +797,20 @@ def build_parser():
     # Attention task composition.
     parser.add_argument("--attention_task", default="mixed")
     parser.add_argument("--attention_tasks", nargs="*", default=None)
+    parser.add_argument("--attention_object_recognition_matches_pretraining", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--attention_base_output_size", type=int, nargs="+", default=[64])
     parser.add_argument("--attention_scale_pixel_parameters", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--attention_background", type=float, default=0.5)
     parser.add_argument("--popout_mode", choices=["class", "rotation", "velocity", "mixed"], default="class")
-    parser.add_argument("--num_distractors", type=int, default=1)
-    parser.add_argument("--crowd_size", type=int, default=2)
+    parser.add_argument("--num_distractors", type=int, default=2)
+    parser.add_argument("--crowd_size", type=int, default=3)
     parser.add_argument("--cue_frames", type=int, default=5)
 
     # Occluders and fixation cue.
-    parser.add_argument("--attention_occluder_count", type=int, default=4)
+    parser.add_argument("--attention_occluder_count", type=int, default=0)
     parser.add_argument("--attention_occluder_min_size", type=int, default=8)
     parser.add_argument("--attention_occluder_max_size", type=int, default=18)
-    parser.add_argument("--attention_fixation_size", type=float, default=3.0)
+    parser.add_argument("--attention_fixation_size", type=float, default=4.0)
 
     # Motion ranges. Defaults match the continuous SpriteVideoDataset where possible.
     parser.add_argument("--attention_scale_range", type=float, nargs=2, default=[0.2, 1.0])
@@ -664,11 +819,11 @@ def build_parser():
     parser.add_argument("--attention_angular_speed_range", type=float, nargs=2, default=[-30.0, 30.0])
 
     # Popout ranges. Slow/fast speed ranges are absolute movement or rotation speeds.
-    parser.add_argument("--attention_slow_speed_range", type=float, nargs=2, default=[0.8, 2.0])
-    parser.add_argument("--attention_fast_speed_range", type=float, nargs=2, default=[4.8, 7.0])
+    parser.add_argument("--attention_slow_speed_range", type=float, nargs=2, default=[1.0, 3.0])
+    parser.add_argument("--attention_fast_speed_range", type=float, nargs=2, default=[7.0, 8.0])
     parser.add_argument("--attention_velocity_popout_kind", choices=["fast", "slow", "mixed"], default="fast")
-    parser.add_argument("--attention_slow_rotation_speed_range", type=float, nargs=2, default=[3.0, 10.0])
-    parser.add_argument("--attention_fast_rotation_speed_range", type=float, nargs=2, default=[20.0, 30.0])
+    parser.add_argument("--attention_slow_rotation_speed_range", type=float, nargs=2, default=[5.0, 15.0])
+    parser.add_argument("--attention_fast_rotation_speed_range", type=float, nargs=2, default=[25.0, 30.0])
     parser.add_argument("--attention_rotation_popout_kind", choices=["fast", "slow", "mixed"], default="fast")
     parser.add_argument("--attention_return_metadata", action=argparse.BooleanOptionalAction, default=False)
 
@@ -676,16 +831,11 @@ def build_parser():
     parser.add_argument("--attention_hidden_dim", type=int, default=None)
     parser.add_argument("--attention_decoder_layers", type=int, default=1)
     parser.add_argument("--attention_dims", choices=["features", "spatial", "features+spatial"], default="features+spatial")
+    parser.add_argument("--attention_conv2d_decoder", action="store_true", help="Use Conv2dDecoder mirrored from the Conv2dEncoder tail for attention masks.")
     parser.add_argument("--attention_readout_path", type=str, default=None, help="Frozen online sprite-classification readout checkpoint. Defaults to online_ctx_readout.pt beside --model_path.")
     parser.add_argument("--attention_use_task_embedding", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--attention_class_prompt_value", type=float, default=10.0)
     parser.add_argument("--attention_eval_every", type=int, default=5, help="Run attention validation every N epochs; 0 disables periodic validation.")
-    parser.add_argument("--eval_pretrained_attention_tasks", action="store_true", help="Evaluate the frozen pretrained model and online readout on each attention task with attention disabled, then exit.")
-    parser.add_argument("--eval_cross_decode_sprites", action="store_true", help="Evaluate frozen pretrained ctx readouts on generated held-out sprite identities, then exit.")
-    parser.add_argument("--cross_decode_sprite_indices", type=int, nargs="+", default=[8, 9])
-    parser.add_argument("--cross_decode_sequences", type=int, default=512)
-    parser.add_argument("--cross_decode_readout_path", type=str, default=None, help="Readout checkpoint for cross-decoding. Defaults to online_ctx_readout.pt beside --model_path.")
-    parser.add_argument("--cross_decode_readout_stats_path", type=str, default=None, help="Optional mean/std stats for offline readouts.")
     parser.add_argument("--max_batches", type=int, default=0, help="Stop each epoch after this many batches; 0 means full epoch.")
     parser.add_argument("--freeze_tolerance", type=float, default=0.0)
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints")
@@ -700,6 +850,14 @@ def build_parser():
     parser.add_argument("--wandb_group", type=str, default="attention", help="Weights & Biases run group")
     parser.add_argument("--log_dir", type=str, default="runs", help="TensorBoard log root directory")
 
+    # Eval of pretrained models
+    parser.add_argument("--eval_pretrained_attention_tasks", action="store_true", help="Evaluate the frozen pretrained model and online readout on each attention task with attention disabled, then exit.")
+    parser.add_argument("--eval_cross_decode_sprites", action="store_true", help="Evaluate frozen pretrained ctx readouts on generated held-out sprite identities, then exit.")
+    parser.add_argument("--cross_decode_sprite_indices", type=int, nargs="+", default=[8, 9])
+    parser.add_argument("--cross_decode_sequences", type=int, default=512)
+    parser.add_argument("--cross_decode_readout_path", type=str, default=None, help="Readout checkpoint for cross-decoding. Defaults to online_ctx_readout.pt beside --model_path.")
+    parser.add_argument("--cross_decode_readout_stats_path", type=str, default=None, help="Optional mean/std stats for offline readouts.")
+    
     parser.set_defaults(
         encoder="conv2d",
         use_bn=True,

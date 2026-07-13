@@ -1,0 +1,15 @@
+readout,task_group,score,metric_note
+online,digit,0.6101874709129333,
+online,color,1.000001311302185,
+online,pos,0.9708371957143148,
+online,vel,0.8182363510131836,
+online,theta,0.0411905702203512,"old sin/cos R2, not used in theta4 plot"
+online,rot speed,0.84423828125,
+offline,digit,0.7324997186660767,
+offline,color,1.000001311302185,
+offline,pos,0.968374212582906,
+offline,vel,0.8159182667732239,
+offline,theta,0.036827677860856,"old sin/cos R2, not used in theta4 plot"
+offline,rot speed,0.855856716632843,
+offline,theta4,0.471080078125,framewise 4-sector orientation accuracy from ctx[t]
+train,theta4,0.482302734375,framewise 4-sector orientation accuracy from ctx[t]

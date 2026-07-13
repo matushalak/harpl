@@ -6,6 +6,8 @@ import os
 import kornia as K
 import glob
 from collections import defaultdict
+from torchvision.datasets import MNIST
+from torchvision.transforms import functional as TF
 
 
 class SpriteVideoDataset(Dataset):
@@ -81,6 +83,10 @@ class SpriteVideoDataset(Dataset):
 
         # Occlusion option
         occlude_n_frames=0,
+
+        # Scale range
+        min_scale=0.2,
+        max_scale=1.0,
         
         # Normalization parameters
         mean=None,  # Pre-computed mean (for test split)
@@ -117,6 +123,10 @@ class SpriteVideoDataset(Dataset):
         self.freeze_grid = freeze_grid
 
         self.occlude_n_frames = occlude_n_frames
+        if min_scale <= 0 or max_scale <= 0 or min_scale > max_scale:
+            raise ValueError("Scale bounds must satisfy 0 < min_scale <= max_scale.")
+        self.min_scale = min_scale
+        self.max_scale = max_scale
         
         # Set random seed for reproducibility
         self.rng = np.random.RandomState(seed)
@@ -301,6 +311,22 @@ class SpriteVideoDataset(Dataset):
             sprites.append(img_tensor)
         
         return sprites
+
+    def _add_identity_label_arrays(self, labels):
+        return labels
+
+    def _sample_sprite_identity(self):
+        sprite_idx = self.rng.randint(0, len(self.sprites))
+        return sprite_idx, {"sprite_idx": self.sprite_class_ids[sprite_idx]}
+
+    def _get_sprite_tensor(self, sprite_idx):
+        return self.sprites[sprite_idx]
+
+    def _get_sequence_labels(self, traj_idx):
+        return torch.tensor([
+            self.labels['sprite_idx'][traj_idx],
+            self.labels['rotation_dir'][traj_idx]
+        ], dtype=torch.long)
     
     def _pil_to_tensor(self, pil_img):
         if pil_img.mode == 'RGBA':
@@ -528,10 +554,13 @@ class SpriteVideoDataset(Dataset):
         max_vel = 8  # Maximum velocity in pixels per frame
         max_zvel = 0.125  # Maximum z velocity (scale change per frame)
         
+        labels = self._add_identity_label_arrays(labels)
+        
         for i in range(self.num_sequences):
-            # Randomly select a sprite
-            sprite_idx = self.rng.randint(0, len(self.sprites))
-            labels['sprite_idx'][i] = self.sprite_class_ids[sprite_idx]
+            # Randomly select a foreground identity
+            sprite_idx, identity_labels = self._sample_sprite_identity()
+            for key, value in identity_labels.items():
+                labels[key][i] = value
             
             # Uniform sampling of velocities in all directions
             # Sample x velocity directly from [-max_vel, max_vel]
@@ -602,8 +631,8 @@ class SpriteVideoDataset(Dataset):
                 labels['zdir'][i, 0] = 0  # Not changing scale
             
             # Scale boundaries
-            min_scale = 0.2  # Ensures at least 4x4 pixels for a 16x16 sprite
-            max_scale = 1.0  # Sprite is 16x16 pixels
+            min_scale = self.min_scale
+            max_scale = self.max_scale
             
             # Sample initial positions (ensuring sprite is fully visible)
             padding = 8  # Ensure sprite isn't starting at the very edge
@@ -785,8 +814,8 @@ class SpriteVideoDataset(Dataset):
         max_zvel = 0.05  # Maximum z velocity (scale change per frame)
         
         # Scale boundaries
-        min_scale = 0.2  # Ensures at least 4x4 pixels for a 16x16 sprite
-        max_scale = 1.0  # Sprite is 16x16 pixels
+        min_scale = self.min_scale
+        max_scale = self.max_scale
         
         # Extract number of discrete levels for each dimension
         xpos_levels = self.discretization_config['xpos']['levels']
@@ -819,10 +848,13 @@ class SpriteVideoDataset(Dataset):
         # Calculate maximum angular speed in discrete space
         max_discrete_angular = (angular_speed_levels - 1)
         
+        labels = self._add_identity_label_arrays(labels)
+        
         for i in range(self.num_sequences):
-            # Randomly select a sprite
-            sprite_idx = self.rng.randint(0, len(self.sprites))
-            labels['sprite_idx'][i] = self.sprite_class_ids[sprite_idx]
+            # Randomly select a foreground identity
+            sprite_idx, identity_labels = self._sample_sprite_identity()
+            for key, value in identity_labels.items():
+                labels[key][i] = value
             
             # Sample initial velocities in discrete space
             discrete_xvel = self.rng.randint(-max_discrete_xvel, max_discrete_xvel + 1)
@@ -1242,7 +1274,7 @@ class SpriteVideoDataset(Dataset):
             torch.Tensor: Video as a tensor with shape [T, 1, H, W]
         """
         # Get the sprite and prepare batch of identical sprites
-        img = self.sprites[sprite_idx]  # [2, H, W]
+        img = self._get_sprite_tensor(sprite_idx)  # [2, H, W] or [4, H, W]
         seq_len = len(transform_sequence)
         
         # Generate all backgrounds for this video at once using fully vectorized approach
@@ -1275,12 +1307,12 @@ class SpriteVideoDataset(Dataset):
 
         # Randomly occlude some consecutive frames
         # Ensure we have enough frames to occlude
-        if seq_len <= self.occlude_n_frames + 4 and self.occlude_n_frames > 0:
-            raise ValueError(f"Sequence too short (seq_len={seq_len}) for occlusion of {self.occlude_n_frames} frames; need > occlude_n_frames + 4")
-        occlusion_start = self.rng.randint(2, seq_len - self.occlude_n_frames - 2)
-        occlusion_end = occlusion_start + self.occlude_n_frames
-        # Replace occluded frames with backgrounds
-        result[occlusion_start:occlusion_end] = backgrounds[occlusion_start:occlusion_end]
+        if self.occlude_n_frames > 0:
+            if seq_len <= self.occlude_n_frames + 4:
+                raise ValueError(f"Sequence too short (seq_len={seq_len}) for occlusion of {self.occlude_n_frames} frames; need > occlude_n_frames + 4")
+            occlusion_start = self.rng.randint(2, seq_len - self.occlude_n_frames - 2)
+            occlusion_end = occlusion_start + self.occlude_n_frames
+            result[occlusion_start:occlusion_end] = backgrounds[occlusion_start:occlusion_end]
 
         # add noise on top of the video
         if self.noise_on_top:
@@ -1366,10 +1398,7 @@ class SpriteVideoDataset(Dataset):
         
         # Organize labels in the format expected by the training code
         # Converting to the same format as dSprites dataset
-        seq_labels = torch.tensor([
-            self.labels['sprite_idx'][traj_idx],
-            self.labels['rotation_dir'][traj_idx]
-        ], dtype=torch.long)
+        seq_labels = self._get_sequence_labels(traj_idx)
         
         dense_labels = torch.stack([
             torch.tensor(self.labels['xdir'][traj_idx], dtype=torch.long),
@@ -1402,6 +1431,86 @@ class SpriteVideoDataset(Dataset):
         ], dim=1)
 
         return video, (seq_labels, dense_labels, cts_labels, cts_dense_labels, aux_labels)
+
+
+class MNISTSpriteVideoDataset(SpriteVideoDataset):
+    """Moving-sprite videos with MNIST train digits as the foreground objects."""
+
+    color_palette = torch.tensor([
+        [0.90, 0.10, 0.10],
+        [0.10, 0.55, 0.95],
+        [0.10, 0.75, 0.30],
+        [0.95, 0.75, 0.10],
+        [0.75, 0.25, 0.95],
+        [0.05, 0.80, 0.80],
+        [0.95, 0.45, 0.15],
+        [0.95, 0.95, 0.95],
+    ], dtype=torch.float32)
+
+    def _load_sprites(self):
+        dataset = MNIST(root=os.path.join(self.data_dir, "mnist"), train=True, download=True)
+        labels = dataset.targets.long()
+        images = dataset.data
+
+        self.mnist_images_by_class = []
+        for class_id in range(10):
+            class_images = images[labels == class_id]
+            self.mnist_images_by_class.append(class_images)
+
+        self.sprite_class_ids = list(range(10))
+        return [None] * len(self.sprite_class_ids)
+
+    def _load_trajectories(self):
+        self.rng = np.random.RandomState(self.seed + 100000)
+        return self._generate_trajectories()
+
+    def _add_identity_label_arrays(self, labels):
+        labels["color_idx"] = np.zeros(self.num_sequences, dtype=np.int32)
+        return labels
+
+    def _sample_sprite_identity(self):
+        digit_class = self.rng.randint(0, 10)
+        image_idx = self.rng.randint(0, len(self.mnist_images_by_class[digit_class]))
+        color_idx = self.rng.randint(0, len(self.color_palette))
+        return (digit_class, image_idx, color_idx), {
+            "sprite_idx": digit_class,
+            "color_idx": color_idx,
+        }
+
+    def _get_sprite_tensor(self, sprite_idx):
+        digit_class, image_idx, color_idx = sprite_idx
+        image = self.mnist_images_by_class[digit_class][image_idx]
+        rows, cols = torch.where(image > 0)
+        if len(rows) > 0:
+            top, bottom = rows.min().item(), rows.max().item() + 1
+            left, right = cols.min().item(), cols.max().item() + 1
+            image = image[top:bottom, left:right]
+            height, width = image.shape
+            side = max(height, width)
+            square = torch.zeros((side, side), dtype=image.dtype)
+            y0 = (side - height) // 2
+            x0 = (side - width) // 2
+            square[y0:y0 + height, x0:x0 + width] = image
+            image = square
+
+        pil_img = TF.to_pil_image(image)
+        pil_img = TF.resize(pil_img, [32, 32], antialias=True)
+        alpha = torch.from_numpy(np.array(pil_img)).float() / 255.0
+
+        if self.grayscale:
+            gray = torch.ones_like(alpha)
+            return torch.stack([gray, alpha], dim=0).to(self.device)
+
+        color = self.color_palette[color_idx].to(self.device).view(3, 1, 1)
+        rgb = color.expand(3, alpha.shape[0], alpha.shape[1])
+        return torch.cat([rgb, alpha.to(self.device).unsqueeze(0)], dim=0)
+
+    def _get_sequence_labels(self, traj_idx):
+        return torch.tensor([
+            self.labels['sprite_idx'][traj_idx],
+            self.labels['color_idx'][traj_idx],
+            self.labels['rotation_dir'][traj_idx],
+        ], dtype=torch.long)
 
 def save_videos_as_gifs_and_pdfs(videos, labels, output_dir="video_gifs", fps=10, max_videos=8, colormap=None, pointer=True, mean=None, std=None):
     """

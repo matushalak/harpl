@@ -1,0 +1,11 @@
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /Users/matushalak/.netrc.
+wandb: Currently logged in as: matushalak (matushalak-vrije-universiteit-amsterdam) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in /Users/matushalak/Documents/harpl/wandb/run-20260712_024303-cie5fs9g
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run mnist_sprites_cts_noiseOnTop0.1_scale0.4-1.2_pred_0_mps_b64
+wandb: ⭐️ View project at https://wandb.ai/matushalak-vrije-universiteit-amsterdam/HARPL
+wandb: 🚀 View run at https://wandb.ai/matushalak-vrije-universiteit-amsterdam/HARPL/runs/cie5fs9g
+num_sequences is only used for MNIST datasets. For other datasets, it will be ignored.
+pred_loss_type and pred_target are only used for Pred loss. For other losses, they will be ignored.
+Computing normalization values using 10000 samples...

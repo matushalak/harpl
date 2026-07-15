@@ -1,0 +1,6 @@
+condition,test_attention_acc,test_attention_iou,test_attention_peak_hit,test_attention_pred_area,test_attention_object_seq_acc,layer0_iou,layer1_iou,layer2_iou,layer3_iou,layer4_iou,layer5_iou
+mnist_bio_attention_cls_only,0.7316,0.0432,0.0939,0.7727,0.9773,0.0432,0.0645,0.0114,0.0048,0.0598,0.0316
+mnist_bio_attention_joint_bce,0.7182,0.0487,0.1001,0.7996,0.9773,0.0487,0.0961,0.0835,0.0115,0.0687,0.0401
+mnist_bio_attention_joint_bce_strong,0.6561,0.0878,0.1499,0.4573,0.8636,0.0878,0.1189,0.1143,0.0929,0.0994,0.0946
+mnist_bio_attention_joint_bce_weak,0.7238,0.0435,0.1042,0.8386,0.9773,0.0435,0.068,0.0105,0.0056,0.0628,0.0334
+mnist_bio_attention_mask_only_bce,0.0802,0.1026,0.1263,0.3739,0.0227,0.1026,0.1513,0.1524,0.1451,0.1427,0.1457

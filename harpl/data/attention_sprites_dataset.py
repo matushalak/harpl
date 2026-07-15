@@ -18,6 +18,8 @@ import torch
 import kornia as K
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision.datasets import MNIST
+from torchvision.transforms import functional as TF
 
 
 NO_PROMPT_CLASS = -1
@@ -43,6 +45,8 @@ POPOUT_MODE_TO_ID = {
 @dataclass(frozen=True)
 class _ObjectSpec:
     class_id: int
+    variant_id: int
+    color_id: int
     positions: np.ndarray
     rotations: np.ndarray
     scales: np.ndarray
@@ -83,6 +87,7 @@ class MovingAnimalAttentionDataset(Dataset):
         seq_len: int = 32,
         num_sequences: int = 1000,
         sprite_img_dir: str = "animals",
+        sprite_source: str = "animals",
         max_sprites: int | None = None,
         seed: int = 42,
         background: float = 0.5,
@@ -149,6 +154,7 @@ class MovingAnimalAttentionDataset(Dataset):
         self.seq_len = seq_len
         self.num_sequences = num_sequences
         self.sprite_img_dir = sprite_img_dir
+        self.sprite_source = sprite_source
         self.max_sprites = max_sprites
         self.seed = seed
         self.background = float(background)
@@ -189,10 +195,20 @@ class MovingAnimalAttentionDataset(Dataset):
         if self.occluder_min_size > self.occluder_max_size:
             raise ValueError("occluder_min_size must be <= occluder_max_size after scaling")
 
-        self.sprite_paths = self._find_sprite_paths()
-        self.sprites = [self._load_sprite_tensor(path) for path in self.sprite_paths]
+        if self.sprite_source not in ("animals", "mnist"):
+            raise ValueError("sprite_source must be 'animals' or 'mnist'")
+        if self.sprite_source == "mnist":
+            self.sprite_paths = []
+            self.sprites = self._load_mnist_sprites()
+        else:
+            self.sprite_paths = self._find_sprite_paths()
+            self.sprites = [self._load_sprite_tensor(path) for path in self.sprite_paths]
         self._sprites_have_common_shape = len({tuple(sprite.shape) for sprite in self.sprites}) == 1
-        self.class_names = [path.stem for path in self.sprite_paths]
+        self.class_names = (
+            [str(idx) for idx in range(len(self.sprites))]
+            if self.sprite_source == "mnist"
+            else [path.stem for path in self.sprite_paths]
+        )
         if len(self.sprites) < 2:
             raise ValueError("At least two sprites are required for attention tasks")
 
@@ -248,6 +264,95 @@ class MovingAnimalAttentionDataset(Dataset):
         alpha_np = np.asarray(alpha, dtype=np.float32) / 255.0
         sprite_np = np.concatenate([rgb_np.transpose(2, 0, 1), alpha_np[None]], axis=0)
         return torch.from_numpy(sprite_np).to(self.device)
+
+    def _load_mnist_sprites(self) -> list[torch.Tensor]:
+        """Load MNIST split images and expose 10 digit classes as sprite classes."""
+        dataset = MNIST(
+            root=str(self.data_dir / "mnist"),
+            train=self.split == "train",
+            download=True,
+        )
+        labels = dataset.targets.long()
+        images = dataset.data
+        self.mnist_images_by_class = []
+        for class_id in range(10):
+            self.mnist_images_by_class.append(images[labels == class_id])
+        class_count = 10 if self.max_sprites is None else min(int(self.max_sprites), 10)
+        return [torch.zeros(4, 32, 32, dtype=torch.float32, device=self.device) for _ in range(class_count)]
+
+    def _mnist_color_palette(self) -> torch.Tensor:
+        return torch.tensor(
+            [
+                [0.90, 0.10, 0.10],
+                [0.10, 0.55, 0.95],
+                [0.10, 0.75, 0.30],
+                [0.95, 0.75, 0.10],
+                [0.75, 0.25, 0.95],
+                [0.05, 0.80, 0.80],
+                [0.95, 0.45, 0.15],
+                [0.95, 0.95, 0.95],
+            ],
+            dtype=torch.float32,
+            device=self.device,
+        )
+
+    def _sample_sprite_variant(self, rng: np.random.Generator, class_id: int) -> tuple[int, int]:
+        if self.sprite_source != "mnist":
+            return -1, -1
+        image_count = len(self.mnist_images_by_class[class_id])
+        return int(rng.integers(0, image_count)), int(rng.integers(0, len(self._mnist_color_palette())))
+
+    def _mnist_sprite_tensor(self, class_id: int, variant_id: int, color_id: int) -> torch.Tensor:
+        image = self.mnist_images_by_class[int(class_id)][int(variant_id)]
+        rows, cols = torch.where(image > 0)
+        if len(rows) > 0:
+            top, bottom = rows.min().item(), rows.max().item() + 1
+            left, right = cols.min().item(), cols.max().item() + 1
+            image = image[top:bottom, left:right]
+            height, width = image.shape
+            side = max(height, width)
+            square = torch.zeros((side, side), dtype=image.dtype)
+            y0 = (side - height) // 2
+            x0 = (side - width) // 2
+            square[y0:y0 + height, x0:x0 + width] = image
+            image = square
+        pil_img = TF.to_pil_image(image)
+        pil_img = TF.resize(pil_img, [32, 32], antialias=True)
+        alpha = torch.from_numpy(np.asarray(pil_img, dtype=np.float32) / 255.0).to(self.device)
+        color = self._mnist_color_palette()[int(color_id)].view(3, 1, 1)
+        rgb = color.expand(3, alpha.shape[0], alpha.shape[1])
+        return torch.cat([rgb, alpha.unsqueeze(0)], dim=0).to(self.device)
+
+    def _object_sprite(self, obj: _ObjectSpec) -> torch.Tensor:
+        if self.sprite_source == "mnist":
+            return self._mnist_sprite_tensor(obj.class_id, obj.variant_id, obj.color_id)
+        return self.sprites[obj.class_id]
+
+    def sprites_from_labels(
+        self,
+        class_ids: torch.Tensor,
+        variant_ids: torch.Tensor | None = None,
+        color_ids: torch.Tensor | None = None,
+        *,
+        dtype: torch.dtype | None = None,
+        device: torch.device | None = None,
+    ) -> torch.Tensor:
+        sprites = []
+        for idx, class_id in enumerate(class_ids.detach().cpu().tolist()):
+            if self.sprite_source == "mnist":
+                if variant_ids is None or color_ids is None:
+                    raise ValueError("MNIST silhouette targets require object_variant and object_color labels.")
+                sprite = self._mnist_sprite_tensor(
+                    int(class_id),
+                    int(variant_ids[idx].detach().cpu().item()),
+                    int(color_ids[idx].detach().cpu().item()),
+                )
+            else:
+                sprite = self.sprites[int(class_id)]
+            if dtype is not None or device is not None:
+                sprite = sprite.to(dtype=dtype or sprite.dtype, device=device or sprite.device)
+            sprites.append(sprite)
+        return torch.stack(sprites, dim=0)
 
     def _sprite_radius(self, class_id: int, scale: float) -> float:
         height, width = self.sprites[class_id].shape[-2:]
@@ -396,6 +501,7 @@ class MovingAnimalAttentionDataset(Dataset):
     ) -> _ObjectSpec:
         seq_len = seq_len or self.seq_len
         scale = self._random_scale(rng)
+        variant_id, color_id = self._sample_sprite_variant(rng, class_id)
         if velocity is None:
             velocity = (
                 self._random_velocity_from_speed_range(rng, speed_range)
@@ -419,6 +525,8 @@ class MovingAnimalAttentionDataset(Dataset):
         )
         return _ObjectSpec(
             class_id=class_id,
+            variant_id=variant_id,
+            color_id=color_id,
             positions=positions,
             rotations=rotations,
             scales=scales,
@@ -530,9 +638,10 @@ class MovingAnimalAttentionDataset(Dataset):
         height, width = self.output_size
         max_vel = 8.0
         max_zvel = 0.125
-        min_scale, max_scale = 0.2, 1.0
+        min_scale, max_scale = self.scale_range
 
         class_id = self._sample_class_ids(rng, 1)[0]
+        variant_id, color_id = self._sample_sprite_variant(rng, class_id)
         velocity = rng.uniform(-max_vel, max_vel, size=2).astype(np.float32)
         scale_velocity = float(rng.uniform(-max_zvel, max_zvel))
         angular_speed = float(rng.uniform(-30.0, 30.0))
@@ -584,6 +693,8 @@ class MovingAnimalAttentionDataset(Dataset):
 
         return _ObjectSpec(
             class_id=class_id,
+            variant_id=variant_id,
+            color_id=color_id,
             positions=positions,
             rotations=rotations,
             scales=scales,
@@ -673,6 +784,7 @@ class MovingAnimalAttentionDataset(Dataset):
     ) -> _ObjectSpec:
         seq_len = self.seq_len - cue_frames
         scale = self._random_scale(rng)
+        variant_id, color_id = self._sample_sprite_variant(rng, class_id)
         velocity = self._random_velocity(rng)
         scale_velocity = self._random_scale_velocity(rng)
         speed = float(np.linalg.norm(velocity))
@@ -696,6 +808,8 @@ class MovingAnimalAttentionDataset(Dataset):
         scales[cue_frames:] = obj_scales
         return _ObjectSpec(
             class_id=class_id,
+            variant_id=variant_id,
+            color_id=color_id,
             positions=positions,
             rotations=rotations,
             scales=scales,
@@ -775,6 +889,8 @@ class MovingAnimalAttentionDataset(Dataset):
         scales[self.cue_frames :] = obj.scales[self.cue_frames - 1 : -1]
         return _ObjectSpec(
             class_id=obj.class_id,
+            variant_id=obj.variant_id,
+            color_id=obj.color_id,
             positions=positions,
             rotations=rotations,
             scales=scales,
@@ -904,7 +1020,7 @@ class MovingAnimalAttentionDataset(Dataset):
                 continue
             obj = spec["objects"][obj_idx]
             start = len(batch_imgs)
-            batch_imgs.extend(self.sprites[obj.class_id] for _ in range(len(visible_times)))
+            batch_imgs.extend(self._object_sprite(obj) for _ in range(len(visible_times)))
             batch_positions.append(obj.positions[visible_times])
             batch_rotations.append(obj.rotations[visible_times])
             batch_scales.append(obj.scales[visible_times])
@@ -936,7 +1052,7 @@ class MovingAnimalAttentionDataset(Dataset):
         }
 
     def _transform_object(self, obj: _ObjectSpec, time_indices: np.ndarray) -> torch.Tensor:
-        sprite = self.sprites[obj.class_id]
+        sprite = self._object_sprite(obj)
         batch_size = len(time_indices)
         batch_img = sprite.unsqueeze(0).repeat(batch_size, 1, 1, 1)
         positions = torch.as_tensor(
@@ -1077,6 +1193,8 @@ class MovingAnimalAttentionDataset(Dataset):
         )
 
         object_class = np.full(self.max_objects, -1, dtype=np.int64)
+        object_variant = np.full(self.max_objects, -1, dtype=np.int64)
+        object_color = np.full(self.max_objects, -1, dtype=np.int64)
         object_mask = np.zeros(self.max_objects, dtype=bool)
         is_target = np.zeros(self.max_objects, dtype=bool)
         positions = np.full((self.seq_len, self.max_objects, 2), np.nan, dtype=np.float32)
@@ -1091,6 +1209,8 @@ class MovingAnimalAttentionDataset(Dataset):
 
         for idx, obj in enumerate(spec["objects"]):
             object_class[idx] = obj.class_id
+            object_variant[idx] = obj.variant_id
+            object_color[idx] = obj.color_id
             object_mask[idx] = True
             is_target[idx] = idx == spec["target_index"]
             positions[:, idx] = obj.positions
@@ -1117,6 +1237,8 @@ class MovingAnimalAttentionDataset(Dataset):
             "prompt_given": torch.tensor(prompt_given, dtype=torch.bool),
             "object_count": torch.tensor(object_count, dtype=torch.long),
             "object_class": torch.from_numpy(object_class),
+            "object_variant": torch.from_numpy(object_variant),
+            "object_color": torch.from_numpy(object_color),
             "object_mask": torch.from_numpy(object_mask),
             "is_target": torch.from_numpy(is_target),
             "positions": torch.from_numpy(positions),

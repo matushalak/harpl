@@ -14,7 +14,7 @@ from harpl.data.attention_sprites_dataset import (
     MovingAnimalAttentionDataset,
     TASK_TO_ID,
 )
-from harpl.data.synthetic_sprites_dataset import SpriteVideoDataset
+from harpl.data.synthetic_sprites_dataset import MNISTSpriteVideoDataset, SpriteVideoDataset
 from harpl.scripts.eval_utils import (
     evaluate_attention_model,
     evaluate_cross_decode_sprites,
@@ -455,7 +455,14 @@ def _get_attention_normalization_stats(args, output_size):
     if hasattr(args, "_attention_normalization_stats"):
         return args._attention_normalization_stats
 
-    stats_dataset = SpriteVideoDataset(
+    dataset_cls = MNISTSpriteVideoDataset if args.attention_sprite_source == "mnist" else SpriteVideoDataset
+    stats_kwargs = {}
+    if args.attention_sprite_source == "mnist":
+        stats_kwargs.update(
+            min_scale=args.attention_scale_range[0],
+            max_scale=args.attention_scale_range[1],
+        )
+    stats_dataset = dataset_cls(
         data_dir=args.data_input_dir,
         split="train",
         output_size=output_size,
@@ -472,6 +479,7 @@ def _get_attention_normalization_stats(args, output_size):
         noise_intensity=args.spritevid_noise_level,
         freeze_noise=args.spritevid_frozen_noise,
         noise_on_top=args.sprite_noise_on_top,
+        **stats_kwargs,
     )
     mean = stats_dataset.mean.detach().cpu()
     std = stats_dataset.std.detach().cpu()
@@ -662,9 +670,18 @@ def _make_silhouette_attention_target(attention, labels, dataset, args=None):
     rotations = rotations[:, 1 : att_seq_len + 1]
     scales = scales[:, 1 : att_seq_len + 1]
 
-    sprites = torch.stack(
-        [dataset.sprites[int(class_id.item())].to(device=device, dtype=dtype) for class_id in class_ids],
-        dim=0,
+    variant_ids = None
+    color_ids = None
+    if "object_variant" in labels:
+        variant_ids = labels["object_variant"].to(device=device)[batch_index, target_index].long()
+    if "object_color" in labels:
+        color_ids = labels["object_color"].to(device=device)[batch_index, target_index].long()
+    sprites = dataset.sprites_from_labels(
+        class_ids,
+        variant_ids,
+        color_ids,
+        dtype=dtype,
+        device=device,
     )
     sprites = sprites[:, None].expand(-1, att_seq_len, -1, -1, -1).reshape(
         class_ids.size(0) * att_seq_len,
@@ -993,6 +1010,7 @@ def _prepare_attention_dataset(args, split="train", num_sequences=None):
         seq_len=args.seq_len,
         num_sequences=args.num_sequences if num_sequences is None else num_sequences,
         sprite_img_dir=args.sprite_img_dir,
+        sprite_source=args.attention_sprite_source,
         max_sprites=args.spritevid_max_sprites,
         seed=args.seed,
         background=args.attention_background,
@@ -1036,14 +1054,15 @@ def _prepare_arpl_model(args, dataset, device):
         raise FileNotFoundError(args.model_path)
 
     output_size = _normalize_output_size(args.spritevid_output_size)
+    model_dataset = "mnist_sprites" if args.attention_sprite_source == "mnist" else "animals"
     input_size, _ = get_data_specs(
-        dataset="animals",
+        dataset=model_dataset,
         target_label="multitask",
         spritevid_num_sprites=args.spritevid_max_sprites,
         spritevid_output_size=output_size,
         flatten_images=args.flatten_images,
     )
-    preprocess, postprocess = additional_data_process("animals", args.flatten_enc_output)
+    preprocess, postprocess = additional_data_process(model_dataset, args.flatten_enc_output)
     return_full_features = args.return_full_features
     if return_full_features is None:
         return_full_features = args.flatten_enc_output
@@ -1255,7 +1274,11 @@ def _validate_optimizer_scope(optimizer, trainable_named):
 def train(args, device):
     if args.torch_num_threads > 0:
         torch.set_num_threads(args.torch_num_threads)
-    if args.attention_supervision_weight and not args.attention_return_metadata:
+    if (
+        args.attention_supervision_weight
+        or args.attention_report_batches
+        or args.attention_panel_examples
+    ) and not args.attention_return_metadata:
         args.attention_return_metadata = True
 
     dataset = _prepare_attention_dataset(args)
@@ -1449,6 +1472,7 @@ def build_parser():
     parser.add_argument("--model_path", type=str, required=True, help="Pretrained RePL checkpoint.")
     parser.add_argument("--data_input_dir", type=str, default="datasets")
     parser.add_argument("--sprite_img_dir", type=str, default="animals")
+    parser.add_argument("--attention_sprite_source", choices=["animals", "mnist"], default="animals")
     parser.add_argument("--spritevid_max_sprites", type=int, default=8)
     parser.add_argument("--spritevid_output_size", type=int, nargs="+", default=[64])
     parser.add_argument("--spritevid_device", type=str, default="cpu")

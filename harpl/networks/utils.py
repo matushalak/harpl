@@ -30,7 +30,7 @@ def additional_data_process(dataset, flatten_enc_output=False):
 
     preprocess = None  # no preprocessing for the time being
 
-    if dataset in ["animals", "mnist"]:
+    if dataset in ["animals", "mnist", "mnist_sprites"]:
         postprocess = FlattenConv() if flatten_enc_output else None
     else:
         postprocess = None

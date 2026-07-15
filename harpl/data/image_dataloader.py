@@ -2,7 +2,7 @@ import torch
 import torchvision.transforms as transforms
 
 from harpl.data.datasets import MNISTSequencesDataset
-from harpl.data.synthetic_sprites_dataset import SpriteVideoDataset
+from harpl.data.synthetic_sprites_dataset import MNISTSpriteVideoDataset, SpriteVideoDataset
 from harpl.data.utils import create_validation_sampler
 
 
@@ -127,6 +127,8 @@ class ImageSequencesDataLoader(ImageDataLoader):
 class SpriteVideoDataLoader(ImageDataLoader):
     """DataLoader for synthetic moving-animal sprite videos."""
 
+    dataset_cls = SpriteVideoDataset
+
     def __init__(
         self,
         data_dir,
@@ -153,10 +155,12 @@ class SpriteVideoDataLoader(ImageDataLoader):
         sprite_imgs="animals",
         grayscale=False,
         occlude_n_frames=0,
+        min_scale=0.2,
+        max_scale=1.0,
         device="cpu",
     ):
         super().__init__(
-            dataset=SpriteVideoDataset,
+            dataset=self.dataset_cls,
             data_dir=data_dir,
             grayscale=grayscale,
             num_workers=num_workers,
@@ -179,6 +183,8 @@ class SpriteVideoDataLoader(ImageDataLoader):
             grid_enabled=grid_enabled,
             freeze_grid=frozen_grid,
             occlude_n_frames=occlude_n_frames,
+            min_scale=min_scale,
+            max_scale=max_scale,
             device=device,
         )
         self.exclude_latent_regions = exclude_latent_regions
@@ -222,3 +228,9 @@ class SpriteVideoDataLoader(ImageDataLoader):
 
     def get_validation(self, batch_size):
         return super().get_validation(batch_size, self.val_sampler)
+
+
+class MNISTSpriteVideoDataLoader(SpriteVideoDataLoader):
+    """DataLoader for MNIST digits rendered with the moving-animal sprite dynamics."""
+
+    dataset_cls = MNISTSpriteVideoDataset

@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 
-from harpl.data.image_dataloader import ImageSequencesDataLoader, SpriteVideoDataLoader
+from harpl.data.image_dataloader import ImageSequencesDataLoader, MNISTSpriteVideoDataLoader, SpriteVideoDataLoader
 from harpl.data._valid_names_lists import DATASET_NAMES
 from harpl.modules.criterion import PredLoss, InvLoss, SupervisedLoss, LeJEPALoss
 from harpl.modules.utils import LinearWarmupCosineAnnealingLR
@@ -85,7 +85,7 @@ def get_data_specs(dataset,
         else:
             raise ValueError(f"Invalid sequence type: {mnist_seqtype}")
         input_size = 28 * 28 if flatten_images else 28
-    elif dataset == "animals":
+    elif dataset in ["animals", "mnist_sprites"]:
         height, width = _normalize_spritevid_output_size(spritevid_output_size)
         if flatten_images and height != width:
             input_size = height * width
@@ -93,12 +93,16 @@ def get_data_specs(dataset,
             raise ValueError("Non-square SpriteVideo output sizes require --flatten_images.")
         else:
             input_size = height * height if flatten_images else height
-        num_classes = ({"sprite_idx": spritevid_num_sprites, "rotation_direction": 3},
+        if dataset == "mnist_sprites":
+            seq_classes = {"digit": 10, "color": 8, "rotation_direction": 3}
+        else:
+            seq_classes = {"sprite_idx": spritevid_num_sprites, "rotation_direction": 3}
+        num_classes = (seq_classes,
                        {"x-direction": 3, "y-direction": 3, "z-direction": 3, "x-position (discr)": 33, "y-position (discr)": 33, "z-position (discr)": 17, "orientation": 36},
                        {"speed": 1, "rotation_speed": 1},
                        {"x-position": 1, "y-position": 1, "z-position": 1, "x-velocity": 1, "y-velocity": 1, "z-velocity": 1, "sin": 1, "cos": 1})
     else:
-        raise ValueError("HARPL supports only the 'mnist' and 'animals' datasets")
+        raise ValueError("HARPL supports only the 'mnist', 'animals', and 'mnist_sprites' datasets")
     return input_size, num_classes
 
 
@@ -128,6 +132,8 @@ def prepare_data(
         spritevid_grid_enabled=False,
         spritevid_frozen_grid=False,
         spritevid_occlude_n_frames=0,
+        spritevid_min_scale=0.2,
+        spritevid_max_scale=1.0,
         spritevid_device="cpu",
         num_sequences=10000,
         inter_trial_interval=0,
@@ -160,6 +166,8 @@ def prepare_data(
         spritevid_grid_enabled (bool): Whether to use grid (only for sprite videos).
         spritevid_frozen_grid (bool): Whether to use frozen grid (only for sprite videos).
         spritevid_occlude_n_frames (int): The number of frames to occlude (only for sprite videos).
+        spritevid_min_scale (float): Minimum object scale (only for sprite videos).
+        spritevid_max_scale (float): Maximum object scale (only for sprite videos).
         spritevid_device (str): The device used for SpriteVideo rendering.
         num_sequences (int): The number of sequences (only for MNIST, FashionMNIST).
         inter_trial_interval (int): The inter-trial interval (only for MNIST, FashionMNIST).
@@ -172,7 +180,7 @@ def prepare_data(
         torch.utils.data.DataLoader: The test data loader.
         torch.utils.data.Sampler: The test sampler.
     """
-    if dataset == "animals":
+    if dataset in ["animals", "mnist_sprites"]:
         spritevid_output_size = _normalize_spritevid_output_size(spritevid_output_size)
         resolved_spritevid_device = select_device(spritevid_device)
         if resolved_spritevid_device.type == "cuda":
@@ -180,7 +188,8 @@ def prepare_data(
                 raise ValueError("CUDA SpriteVideo rendering requires --num_workers 0.")
             if pin_memory:
                 raise ValueError("CUDA SpriteVideo rendering returns CUDA tensors; use --no-pin-memory.")
-        dataloader = SpriteVideoDataLoader(
+        dataloader_cls = MNISTSpriteVideoDataLoader if dataset == "mnist_sprites" else SpriteVideoDataLoader
+        dataloader = dataloader_cls(
             data_dir=data_input_dir,
             num_workers=num_workers,
             pin_memory=pin_memory,
@@ -199,9 +208,11 @@ def prepare_data(
             noise_on_top=sprite_noise_on_top,
             grid_enabled=spritevid_grid_enabled,
             frozen_grid=spritevid_frozen_grid,
-            sprite_imgs=dataset,
+            sprite_imgs="animals" if dataset == "animals" else "mnist_sprites",
             grayscale=grayscale,
             occlude_n_frames=spritevid_occlude_n_frames,
+            min_scale=spritevid_min_scale,
+            max_scale=spritevid_max_scale,
             device=resolved_spritevid_device,
         )
         train_loader, train_sampler = dataloader.get_train(batch_size)
@@ -224,7 +235,7 @@ def prepare_data(
         val_loader, val_sampler = dataloader.get_validation(val_batch_size)
         test_loader, test_sampler = dataloader.get_test(val_batch_size)
     else:
-        raise ValueError("HARPL supports only the 'mnist' and 'animals' datasets")
+        raise ValueError("HARPL supports only the 'mnist', 'animals', and 'mnist_sprites' datasets")
 
     return (
         train_loader,

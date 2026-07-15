@@ -109,6 +109,8 @@ def add_data_args(parser):
     parser.add_argument("--spritevid_grid_enabled", action="store_true", help="enable grid for the SpriteVideo dataset")
     parser.add_argument("--spritevid_frozen_grid", action="store_true", help="freeze grid across frames for the SpriteVideo dataset")
     parser.add_argument("--spritevid_occlude_n_frames", type=int, default=0, help="number of frames to occlude in the SpriteVideo dataset")
+    parser.add_argument("--spritevid_min_scale", type=float, default=0.2, help="minimum SpriteVideo object scale")
+    parser.add_argument("--spritevid_max_scale", type=float, default=1.0, help="maximum SpriteVideo object scale")
     parser.add_argument("--spritevid_device", type=str, default="cpu", help="device used to render SpriteVideo batches: cpu, cuda, cuda:0, or auto")
     parser.add_argument("--num_sequences", type=int, default=10000, help="number of sequences for MNIST dataset")
     parser.add_argument("--inter_trial_interval", type=int, default=0, help="inter-trial interval (only for MNIST dataset)")
@@ -231,6 +233,6 @@ def check_args(args):
     if args.pred_target_dim_override > 0 and "loss" in args:
         assert args.loss == "inv", "Output size of the predictor network can be overriden only for Inv loss using --pred_target_dim_override"
     if args.flatten_images:
-        assert args.dataset in ["mnist", "animals"], "Flattening images is only supported for MNIST and Animals datasets"
+        assert args.dataset in ["mnist", "animals", "mnist_sprites"], "Flattening images is only supported for MNIST, Animals, and MNIST Sprites datasets"
     print("num_sequences is only used for MNIST datasets. For other datasets, it will be ignored.")
     print("pred_loss_type and pred_target are only used for Pred loss. For other losses, they will be ignored.")

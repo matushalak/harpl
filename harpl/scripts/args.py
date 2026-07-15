@@ -227,7 +227,9 @@ def check_args(args):
         if args.prediction_target == "pred":
             assert args.loss == "inv", "Prediction target cannot be set to pred for losses other than Inv"
         if args.loss not in ["supervised", "inv"]:
-            assert args.predictor is not None, f"{args.loss} loss requires a predictor"
+            predictor = getattr(args, "predictor", None)
+            area_predictor = getattr(args, "area_predictors_kind", None)
+            assert predictor is not None or area_predictor is not None, f"{args.loss} loss requires a predictor"
         if args.loss == "inv" and args.pred_target_dim_override == 0:
             print("Output size of the predictor network should ideally be specified for Inv loss using --pred_target_dim_override. If not specified, the output size of the encoder will be used and will be unpredictable.")
     if args.pred_target_dim_override > 0 and "loss" in args:

@@ -323,7 +323,7 @@ def _prepare_arpl_model(args, dataset, device):
         preprocess=repl.preprocess,
         postprocess=repl.postprocess,
         freeze_repl=True,
-        eval_frozen=True,
+        eval_frozen=False,
         decoder_input_dim=predictor_output_dim,
         use_task_embedding=args.attention_use_task_embedding,
         use_prompt_embedding=args.attention_use_prompt_embedding,
@@ -389,7 +389,7 @@ def _prepare_harpl_model(args, dataset, device):
         decoder=decoder,
         num_tasks=len(TASK_TO_ID),
         freeze_repl=True,
-        eval_frozen=True,
+        eval_frozen=False,
         decoder_input_dim=predictor_output_dim,
         readout_area=readout_area,
         use_task_embedding=args.attention_use_task_embedding,
@@ -440,16 +440,23 @@ def _validate_optimizer_scope(optimizer, trainable_named):
 
 
 def _eval_frozen_repl_modules(model):
+    def eval_or_train_frozen_sequence_module(module):
+        backbone = getattr(module, "backbone", None)
+        if isinstance(backbone, nn.RNNBase):
+            module.train()
+        else:
+            module.eval()
+
     if hasattr(model, "encoder_first"):
         model.encoder_first.eval()
         model.encoder_tail.eval()
-        model.integrator.eval()
+        eval_or_train_frozen_sequence_module(model.integrator)
         model.predictor.eval()
         return
     if hasattr(model, "areas"):
         for area in model.areas:
             area["encoder"].eval()
-            area["integrator"].eval()
+            eval_or_train_frozen_sequence_module(area["integrator"])
             area["predictor"].eval()
 
 

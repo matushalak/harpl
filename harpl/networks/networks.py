@@ -21,9 +21,9 @@ class EncoderNetwork(nn.Module):
         - z: Encoded representation of shape (B, L, C)
     """
 
-    def __init__(self, backbone=nn.Sequential(), encoded_dim=512):
+    def __init__(self, backbone=None, encoded_dim=512):
         super(EncoderNetwork, self).__init__()
-        self.backbone = backbone
+        self.backbone = backbone if backbone is not None else nn.Sequential()
         self.encoded_dim = encoded_dim
 
     def get_output_dim(self):
@@ -69,9 +69,9 @@ class DecoderNetwork(nn.Module):
         - z: Decoded representation of shape (B, L, C)
     """
 
-    def __init__(self, backbone=nn.Sequential(), decoded_dim=64):
+    def __init__(self, backbone=None, decoded_dim=64):
         super(DecoderNetwork, self).__init__()
-        self.backbone = backbone
+        self.backbone = backbone if backbone is not None else nn.Sequential()
         self.decoded_dim = decoded_dim
 
     def get_output_dim(self):

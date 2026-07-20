@@ -1,0 +1,41 @@
+model,area,split,group,task,metric,value
+RPL,,eval,sequence,digit,classification_loss,1.1100895404815674
+RPL,,eval,sequence,color,classification_loss,0.0
+RPL,,eval,sequence,rotation_direction,classification_loss,0.2827937602996826
+RPL,,eval,sequence,digit,accuracy,0.671875
+RPL,,eval,sequence,color,accuracy,1.0
+RPL,,eval,sequence,rotation_direction,accuracy,0.953125
+RPL,,eval,frame,x-direction,classification_loss,0.22427305579185486
+RPL,,eval,frame,y-direction,classification_loss,0.18143928050994873
+RPL,,eval,frame,z-direction,classification_loss,1.0774811506271362
+RPL,,eval,frame,x-position (discr),classification_loss,1.0783957242965698
+RPL,,eval,frame,y-position (discr),classification_loss,1.0925929546356201
+RPL,,eval,frame,z-position (discr),classification_loss,5.6170806884765625
+RPL,,eval,frame,orientation,classification_loss,3.026257276535034
+RPL,,eval,frame,x-direction,accuracy,0.92431640625
+RPL,,eval,frame,y-direction,accuracy,0.94091796875
+RPL,,eval,frame,z-direction,accuracy,0.814453125
+RPL,,eval,frame,x-position (discr),accuracy,0.554931640625
+RPL,,eval,frame,y-position (discr),accuracy,0.565673828125
+RPL,,eval,frame,z-position (discr),accuracy,0.115478515625
+RPL,,eval,frame,orientation,accuracy,0.1044921875
+RPL,,eval,sequence,speed,regression_loss,0.21374599635601044
+RPL,,eval,sequence,rotation_speed,regression_loss,9.017744064331055
+RPL,,eval,sequence,speed,r2,0.9553312510251999
+RPL,,eval,sequence,rotation_speed,r2,0.8640834838151932
+RPL,,eval,frame,x-position,regression_loss,0.0026641604490578175
+RPL,,eval,frame,y-position,regression_loss,0.002651116345077753
+RPL,,eval,frame,z-position,regression_loss,0.028918232768774033
+RPL,,eval,frame,x-velocity,regression_loss,0.05532551929354668
+RPL,,eval,frame,y-velocity,regression_loss,0.05555557459592819
+RPL,,eval,frame,z-velocity,regression_loss,0.1857287883758545
+RPL,,eval,frame,sin,regression_loss,0.4741615951061249
+RPL,,eval,frame,cos,regression_loss,0.4643579125404358
+RPL,,eval,frame,x-position,r2,0.9886106252670288
+RPL,,eval,frame,y-position,r2,0.9885767996311188
+RPL,,eval,frame,z-position,r2,0.6333094388246536
+RPL,,eval,frame,x-velocity,r2,0.8488527685403824
+RPL,,eval,frame,y-velocity,r2,0.8500877320766449
+RPL,,eval,frame,z-velocity,r2,0.46428975462913513
+RPL,,eval,frame,sin,r2,0.05583548545837402
+RPL,,eval,frame,cos,r2,0.059067562222480774

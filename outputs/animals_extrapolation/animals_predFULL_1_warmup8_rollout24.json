@@ -1,0 +1,2018 @@
+[
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.994723379611969
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.9947574734687805
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9945275187492371
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9929882287979126
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.9946206212043762
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.990266740322113
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9954918622970581
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9887354373931885
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9958205223083496
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9879082441329956
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9958940148353577
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9848029613494873
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.9958822727203369
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.9800742864608765
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.9949774742126465
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.9747675657272339
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.9951026439666748
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.9705399870872498
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.9951658248901367
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.9633681774139404
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.995033860206604
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.9561420679092407
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.9940459728240967
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.946759045124054
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.995712161064148
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.9376188516616821
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.9962013959884644
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.9278311729431152
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.9964144229888916
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.9142980575561523
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.9960713386535645
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.8965693116188049
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.9964197278022766
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.8761811852455139
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.9960319399833679
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.855283260345459
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.996067225933075
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.8311067223548889
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.9960675835609436
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.7955718636512756
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.9959661960601807
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.7604981064796448
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.995293915271759
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.7359643578529358
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.9950438737869263
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.717926025390625
+  },
+  {
+    "variable": "x",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.994889497756958
+  },
+  {
+    "variable": "x",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.6848960518836975
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.9939579367637634
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.9926120638847351
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9929977655410767
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9899250268936157
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.9930269718170166
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.9871416091918945
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9942600727081299
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9862794280052185
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9944109916687012
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9853752851486206
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9948397874832153
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9825291633605957
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.9947220087051392
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.9782414436340332
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.9939660429954529
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.9733553528785706
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.9946684837341309
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.9665900468826294
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.9941971302032471
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.960090160369873
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.9941359758377075
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.9512618780136108
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.994699239730835
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.9390807151794434
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.9941948652267456
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.9184309244155884
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.9952492117881775
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.8971120715141296
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.9947102069854736
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.8754270672798157
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.9949489831924438
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.8503656387329102
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.9937669634819031
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.8335336446762085
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.9937430620193481
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.8169071674346924
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.9939475059509277
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.7861099243164062
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.9938210844993591
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.7487854361534119
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.9938796162605286
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.7135869264602661
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.9943954348564148
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.6824517846107483
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.9950615167617798
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.6628907918930054
+  },
+  {
+    "variable": "y",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.9948744177818298
+  },
+  {
+    "variable": "y",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.6581756472587585
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.9874020218849182
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.985783576965332
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9883657693862915
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.9774001240730286
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.9882291555404663
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.9652291536331177
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9883217215538025
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.9521351456642151
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9873389601707458
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.9307968616485596
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9877791404724121
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.9038249850273132
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.9879319667816162
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.8746052980422974
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.9882132411003113
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.8428211808204651
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.9873325824737549
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.7989255785942078
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.9870012402534485
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.7496510744094849
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.9872432351112366
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.7030003666877747
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.987085223197937
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.6505514979362488
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.9874756932258606
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.572265088558197
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.9889990091323853
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.5076416730880737
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.9879587292671204
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.400831937789917
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.9878098964691162
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.2750459313392639
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.9877682328224182
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.18777406215667725
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.9867214560508728
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.14578312635421753
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.9875048398971558
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.09925127029418945
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.9868699908256531
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.058924078941345215
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.987668514251709
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.023404181003570557
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.9878137111663818
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "r2",
+    "value": -0.04338717460632324
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.988006055355072
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "r2",
+    "value": -0.10053801536560059
+  },
+  {
+    "variable": "z",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.9879117608070374
+  },
+  {
+    "variable": "z",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "r2",
+    "value": -0.16740691661834717
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.6164790391921997
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.5759265422821045
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.6127619743347168
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.5384830236434937
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.6406263113021851
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.4969925880432129
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.622085452079773
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.4439842700958252
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.6399804353713989
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.4048594832420349
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.6475653648376465
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.3664700984954834
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.6202882528305054
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.32381224632263184
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.6076897382736206
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.26577872037887573
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.612688422203064
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.19872570037841797
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.6089364290237427
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.15621429681777954
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.6193398237228394
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.14169752597808838
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.6394983530044556
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.1373593807220459
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.6441928148269653
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.11025571823120117
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.6244394183158875
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.06368553638458252
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.6294939517974854
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "r2",
+    "value": -0.010910987854003906
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.6575509309768677
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "r2",
+    "value": -0.07529628276824951
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.673945426940918
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "r2",
+    "value": -0.09665429592132568
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.6526266932487488
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "r2",
+    "value": -0.10110867023468018
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.6740358471870422
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "r2",
+    "value": -0.12240231037139893
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.6773364543914795
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "r2",
+    "value": -0.1826915740966797
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.6709592342376709
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "r2",
+    "value": -0.24022173881530762
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.644781231880188
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "r2",
+    "value": -0.25443291664123535
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.607607364654541
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "r2",
+    "value": -0.29066622257232666
+  },
+  {
+    "variable": "sin",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.5976833701133728
+  },
+  {
+    "variable": "sin",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "r2",
+    "value": -0.3629176616668701
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.6004258990287781
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "r2",
+    "value": 0.5489488244056702
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.5737439393997192
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "r2",
+    "value": 0.49649375677108765
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.5622298121452332
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "r2",
+    "value": 0.42091894149780273
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.5758092403411865
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "r2",
+    "value": 0.3719233274459839
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.6058008670806885
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "r2",
+    "value": 0.3667713403701782
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.6174484491348267
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "r2",
+    "value": 0.3130417466163635
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.608174204826355
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "r2",
+    "value": 0.28445953130722046
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.6330175399780273
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "r2",
+    "value": 0.2687646150588989
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.6174284219741821
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "r2",
+    "value": 0.19314974546432495
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.5865265727043152
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "r2",
+    "value": 0.14713609218597412
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.6065847873687744
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "r2",
+    "value": 0.07397383451461792
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.5615460872650146
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "r2",
+    "value": 0.027478158473968506
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.5757275223731995
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "r2",
+    "value": 0.0001793503761291504
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.6113260984420776
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "r2",
+    "value": 0.02390378713607788
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "r2",
+    "value": 0.6110436320304871
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "r2",
+    "value": -0.10600650310516357
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "r2",
+    "value": 0.6172099113464355
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "r2",
+    "value": -0.09062981605529785
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "r2",
+    "value": 0.6118993759155273
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "r2",
+    "value": -0.1849510669708252
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "r2",
+    "value": 0.622712254524231
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "r2",
+    "value": -0.18052411079406738
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "r2",
+    "value": 0.6239520311355591
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "r2",
+    "value": -0.16680407524108887
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "r2",
+    "value": 0.6381904482841492
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "r2",
+    "value": -0.219527006149292
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "r2",
+    "value": 0.6200141310691833
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "r2",
+    "value": -0.2344754934310913
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "r2",
+    "value": 0.6057261228561401
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "r2",
+    "value": -0.26899802684783936
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "r2",
+    "value": 0.6071566939353943
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "r2",
+    "value": -0.3011469841003418
+  },
+  {
+    "variable": "cos",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "r2",
+    "value": 0.5843631625175476
+  },
+  {
+    "variable": "cos",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "r2",
+    "value": -0.36927568912506104
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 1,
+    "metric": "accuracy",
+    "value": 0.75390625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 1,
+    "metric": "accuracy",
+    "value": 0.712890625
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 2,
+    "metric": "accuracy",
+    "value": 0.724609375
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 2,
+    "metric": "accuracy",
+    "value": 0.6640625
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 3,
+    "metric": "accuracy",
+    "value": 0.70703125
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 3,
+    "metric": "accuracy",
+    "value": 0.599609375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 4,
+    "metric": "accuracy",
+    "value": 0.703125
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 4,
+    "metric": "accuracy",
+    "value": 0.580078125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 5,
+    "metric": "accuracy",
+    "value": 0.759765625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 5,
+    "metric": "accuracy",
+    "value": 0.54296875
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 6,
+    "metric": "accuracy",
+    "value": 0.75390625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 6,
+    "metric": "accuracy",
+    "value": 0.533203125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 7,
+    "metric": "accuracy",
+    "value": 0.720703125
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 7,
+    "metric": "accuracy",
+    "value": 0.564453125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 8,
+    "metric": "accuracy",
+    "value": 0.736328125
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 8,
+    "metric": "accuracy",
+    "value": 0.5078125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 9,
+    "metric": "accuracy",
+    "value": 0.755859375
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 9,
+    "metric": "accuracy",
+    "value": 0.470703125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 10,
+    "metric": "accuracy",
+    "value": 0.72265625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 10,
+    "metric": "accuracy",
+    "value": 0.435546875
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 11,
+    "metric": "accuracy",
+    "value": 0.75
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 11,
+    "metric": "accuracy",
+    "value": 0.427734375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 12,
+    "metric": "accuracy",
+    "value": 0.72265625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 12,
+    "metric": "accuracy",
+    "value": 0.416015625
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 13,
+    "metric": "accuracy",
+    "value": 0.734375
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 13,
+    "metric": "accuracy",
+    "value": 0.369140625
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 14,
+    "metric": "accuracy",
+    "value": 0.748046875
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 14,
+    "metric": "accuracy",
+    "value": 0.361328125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 15,
+    "metric": "accuracy",
+    "value": 0.744140625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 15,
+    "metric": "accuracy",
+    "value": 0.361328125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 16,
+    "metric": "accuracy",
+    "value": 0.75
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 16,
+    "metric": "accuracy",
+    "value": 0.34765625
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 17,
+    "metric": "accuracy",
+    "value": 0.7890625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 17,
+    "metric": "accuracy",
+    "value": 0.294921875
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 18,
+    "metric": "accuracy",
+    "value": 0.763671875
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 18,
+    "metric": "accuracy",
+    "value": 0.30859375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 19,
+    "metric": "accuracy",
+    "value": 0.74609375
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 19,
+    "metric": "accuracy",
+    "value": 0.302734375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 20,
+    "metric": "accuracy",
+    "value": 0.7421875
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 20,
+    "metric": "accuracy",
+    "value": 0.302734375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 21,
+    "metric": "accuracy",
+    "value": 0.751953125
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 21,
+    "metric": "accuracy",
+    "value": 0.283203125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 22,
+    "metric": "accuracy",
+    "value": 0.71875
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 22,
+    "metric": "accuracy",
+    "value": 0.267578125
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 23,
+    "metric": "accuracy",
+    "value": 0.72265625
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 23,
+    "metric": "accuracy",
+    "value": 0.21484375
+  },
+  {
+    "variable": "theta4",
+    "source": "teacher_forced",
+    "horizon": 24,
+    "metric": "accuracy",
+    "value": 0.708984375
+  },
+  {
+    "variable": "theta4",
+    "source": "recursive",
+    "horizon": 24,
+    "metric": "accuracy",
+    "value": 0.21875
+  }
+]

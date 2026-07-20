@@ -1,0 +1,23 @@
+Computing normalization values using 512 samples...
+Computed normalization values - mean: tensor([0.5041, 0.5023, 0.5013]), std: tensor([0.1205, 0.1100, 0.1186])
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:00<00:14,  1.05it/s]evaluate:  12%|█▎        | 2/16 [00:01<00:12,  1.13it/s]evaluate:  19%|█▉        | 3/16 [00:02<00:11,  1.16it/s]evaluate:  25%|██▌       | 4/16 [00:03<00:10,  1.18it/s]evaluate:  31%|███▏      | 5/16 [00:04<00:09,  1.18it/s]evaluate:  38%|███▊      | 6/16 [00:05<00:08,  1.16it/s]evaluate:  44%|████▍     | 7/16 [00:06<00:07,  1.15it/s]evaluate:  50%|█████     | 8/16 [00:06<00:06,  1.15it/s]evaluate:  56%|█████▋    | 9/16 [00:07<00:06,  1.15it/s]evaluate:  62%|██████▎   | 10/16 [00:08<00:05,  1.16it/s]evaluate:  69%|██████▉   | 11/16 [00:09<00:04,  1.17it/s]evaluate:  75%|███████▌  | 12/16 [00:10<00:03,  1.17it/s]evaluate:  81%|████████▏ | 13/16 [00:11<00:02,  1.17it/s]evaluate:  88%|████████▊ | 14/16 [00:12<00:01,  1.16it/s]evaluate:  94%|█████████▍| 15/16 [00:12<00:00,  1.15it/s]evaluate: 100%|██████████| 16/16 [00:13<00:00,  1.14it/s]evaluate: 100%|██████████| 16/16 [00:13<00:00,  1.15it/s]
+RPL sequence digit accuracy=0.6611
+RPL sequence color accuracy=1.0000
+RPL sequence rotation_direction accuracy=0.9570
+RPL frame x-direction accuracy=0.9288
+RPL frame y-direction accuracy=0.9303
+RPL frame z-direction accuracy=0.7998
+RPL frame x-position (discr) accuracy=0.5424
+RPL frame y-position (discr) accuracy=0.5536
+RPL frame z-position (discr) accuracy=0.1154
+RPL frame orientation accuracy=0.0976
+RPL sequence speed r2=0.9550
+RPL sequence rotation_speed r2=0.8063
+RPL frame x-position r2=0.9876
+RPL frame y-position r2=0.9879
+RPL frame z-position r2=0.6287
+RPL frame x-velocity r2=0.8389
+RPL frame y-velocity r2=0.8399
+RPL frame z-velocity r2=0.4471
+RPL frame sin r2=0.0349
+RPL frame cos r2=0.0328

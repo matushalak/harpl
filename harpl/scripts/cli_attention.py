@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from harpl.data.attention_sprites_dataset import (
+    MNISTMovingAttentionDataset,
     MovingAnimalAttentionDataset,
     TASK_TO_ID,
 )
@@ -17,9 +18,12 @@ from harpl.networks.harpl import (
     ARPLmodel,
     ChannelAttentionDecoder,
     ClassificationHead,
+    FeatureSpatialAttentionDecoder,
+    HierarchicalARPLmodel,
 )
 from harpl.networks.utils import additional_data_process, prepare_model
 from harpl.scripts.args import (
+    add_greedy_model_args,
     add_model_args,
     add_optimization_args,
     add_reproducibility_args,
@@ -112,6 +116,18 @@ def _infer_predictor_output_dim(predictor, fallback):
     return int(fallback)
 
 
+def _infer_first_encoder_shape(encoder, input_size, n_in_channels, device):
+    first, _, _ = ARPLmodel._split_encoder(encoder)
+    first = first.to(device)
+    was_training = first.training
+    first.eval()
+    with torch.no_grad():
+        dummy = torch.zeros(1, 1, n_in_channels, input_size[0], input_size[1], device=device)
+        out = ARPLmodel._forward_video_layers(first, dummy)
+    first.train(was_training)
+    return tuple(out.shape[2:])
+
+
 def _make_attention_targets(task_info, seq_len, cue_frames):
     targets = task_info[:, 1].unsqueeze(1).expand(-1, seq_len)
     mask = torch.ones_like(targets, dtype=torch.bool)
@@ -123,8 +139,42 @@ def _make_attention_targets(task_info, seq_len, cue_frames):
 
 def _move_labels(labels, device, non_blocking):
     if isinstance(labels, dict):
-        labels = labels["task_info"]
+        return {
+            key: value.to(device, non_blocking=non_blocking) if torch.is_tensor(value) else value
+            for key, value in labels.items()
+        }
     return labels.to(device, non_blocking=non_blocking)
+
+
+def _task_info(labels):
+    if isinstance(labels, dict):
+        return labels["task_info"]
+    return labels
+
+
+def _attention_mask_loss(attention, labels, valid_mask, positive_weight):
+    if not isinstance(labels, dict) or "target_mask" not in labels:
+        raise RuntimeError("Mask supervision requires attention dataset metadata.")
+    target = labels["target_mask"].to(device=attention.device, dtype=attention.dtype)
+    if attention.ndim != 5:
+        raise RuntimeError(f"Spatial mask supervision expects 5D attention, got {tuple(attention.shape)}")
+    batch_size, seq_len, channels, feat_h, feat_w = attention.shape
+    target_flat = target.reshape(batch_size * seq_len, 1, *target.shape[-2:])
+    target_small = nn.functional.interpolate(
+        target_flat,
+        size=(feat_h, feat_w),
+        mode="area",
+    ).reshape(batch_size, seq_len, 1, feat_h, feat_w)
+    target_small = (target_small > 0.05).to(dtype=attention.dtype)
+    pred = (attention + 1.0) * 0.5
+    target_expanded = target_small.expand(-1, -1, channels, -1, -1)
+    squared = (pred - target_expanded).pow(2)
+    if positive_weight != 1.0:
+        weights = torch.ones_like(squared)
+        weights = weights + (float(positive_weight) - 1.0) * target_expanded
+        squared = squared * weights
+    frame_mask = valid_mask[:, :, None, None, None].to(dtype=torch.bool)
+    return squared[frame_mask.expand_as(squared)].mean(), target_small
 
 
 def _snapshot_named_params(named_params):
@@ -166,7 +216,8 @@ def _mps_memory_stats(device):
 
 def _prepare_attention_dataset(args):
     output_size = _normalize_output_size(args.spritevid_output_size)
-    return MovingAnimalAttentionDataset(
+    dataset_cls = MNISTMovingAttentionDataset if args.attention_dataset == "mnist_sprites" else MovingAnimalAttentionDataset
+    return dataset_cls(
         data_dir=args.data_input_dir,
         task=args.attention_task,
         tasks=_parse_task_values(args.attention_tasks),
@@ -185,7 +236,27 @@ def _prepare_attention_dataset(args):
         num_distractors=args.num_distractors,
         crowd_size=args.crowd_size,
         cue_frames=args.cue_frames,
+        scale_range=(args.spritevid_min_scale, args.spritevid_max_scale),
+        return_metadata=args.attention_mask_loss_weight > 0.0,
     )
+
+
+def _make_decoder(args, input_dim, context_dim, first_shape):
+    if args.attention_decoder_kind == "channel":
+        return ChannelAttentionDecoder(
+            input_dim=2 * input_dim,
+            output_dim=first_shape[0],
+            hidden_dim=args.attention_hidden_dim or context_dim,
+            n_hidden_layers=args.attention_decoder_layers,
+        )
+    if args.attention_decoder_kind == "spatial":
+        return FeatureSpatialAttentionDecoder(
+            input_dim=2 * input_dim,
+            output_shape=first_shape,
+            hidden_dim=args.attention_hidden_dim or context_dim,
+            n_hidden_layers=args.attention_decoder_layers,
+        )
+    raise ValueError(f"Unknown attention decoder kind: {args.attention_decoder_kind}")
 
 
 def _prepare_arpl_model(args, dataset, device):
@@ -195,14 +266,15 @@ def _prepare_arpl_model(args, dataset, device):
         raise FileNotFoundError(args.model_path)
 
     output_size = _normalize_output_size(args.spritevid_output_size)
+    dataset_name = "mnist_sprites" if args.attention_dataset == "mnist_sprites" else "animals"
     input_size, _ = get_data_specs(
-        dataset="animals",
+        dataset=dataset_name,
         target_label="multitask",
         spritevid_num_sprites=args.spritevid_max_sprites,
         spritevid_output_size=output_size,
         flatten_images=args.flatten_images,
     )
-    preprocess, postprocess = additional_data_process("animals", args.flatten_enc_output)
+    preprocess, postprocess = additional_data_process(dataset_name, args.flatten_enc_output)
     return_full_features = args.return_full_features
     if return_full_features is None:
         return_full_features = args.flatten_enc_output
@@ -238,14 +310,9 @@ def _prepare_arpl_model(args, dataset, device):
 
     context_dim = _infer_context_dim(repl.integrator, args.ctx_dim)
     predictor_output_dim = _infer_predictor_output_dim(repl.predictor, context_dim)
-    attention_channels = _infer_first_encoder_channels(repl.encoder)
     head = ClassificationHead(input_dim=context_dim, num_classes=len(dataset.sprites))
-    decoder = ChannelAttentionDecoder(
-        input_dim=2 * predictor_output_dim,
-        output_dim=attention_channels,
-        hidden_dim=args.attention_hidden_dim or context_dim,
-        n_hidden_layers=args.attention_decoder_layers,
-    )
+    first_shape = _infer_first_encoder_shape(repl.encoder, output_size, 1 if args.grayscale else 3, device)
+    decoder = _make_decoder(args, predictor_output_dim, context_dim, first_shape)
     model = ARPLmodel(
         encoder=repl.encoder,
         integrator=repl.integrator,
@@ -258,6 +325,75 @@ def _prepare_arpl_model(args, dataset, device):
         freeze_repl=True,
         eval_frozen=True,
         decoder_input_dim=predictor_output_dim,
+        use_task_embedding=args.attention_use_task_embedding,
+        use_prompt_embedding=args.attention_use_prompt_embedding,
+    )
+    return model.to(device)
+
+
+def _prepare_harpl_model(args, dataset, device):
+    if args.model_path is None:
+        raise ValueError("Specify a pretrained hRPL checkpoint with --model_path.")
+    if not os.path.exists(args.model_path):
+        raise FileNotFoundError(args.model_path)
+
+    output_size = _normalize_output_size(args.spritevid_output_size)
+    dataset_name = "mnist_sprites" if args.attention_dataset == "mnist_sprites" else "animals"
+    input_size, _ = get_data_specs(
+        dataset=dataset_name,
+        target_label="multitask",
+        spritevid_num_sprites=args.spritevid_max_sprites,
+        spritevid_output_size=output_size,
+        flatten_images=args.flatten_images,
+    )
+    preprocess, postprocess = additional_data_process(dataset_name, args.flatten_area_enc_output)
+    state_dict = torch.load(args.model_path, map_location="cpu")
+    repl = prepare_model(
+        encoder_kind=args.area_encoders_kind,
+        integrator_kind=args.area_integrators_kind,
+        predictor_kind=args.area_predictors_kind,
+        input_size=input_size,
+        n_in_channels=1 if args.grayscale else 3,
+        enc_dim=args.area_enc_dims,
+        ctx_dim=args.area_ctx_dims,
+        ctx_n_layers=args.area_ctx_n_layers,
+        pred_n_hidden_layers=args.area_pred_n_hidden_layers,
+        pred_hidden_dim=args.area_pred_hidden_dims,
+        pred_steps=args.pred_steps,
+        dense_prediction=args.dense_prediction,
+        prediction_target=args.prediction_target,
+        pred_target_dim_override=args.pred_target_dim_override,
+        use_bn_enc=args.area_enc_bn,
+        enc_n_layers=args.area_enc_n_layers,
+        enc_kernel_size=args.area_enc_kernel_sizes,
+        enc_stride=args.area_enc_strides,
+        enc_padding=args.area_enc_paddings,
+        enc_pool_size=args.area_enc_pool_sizes,
+        preprocess=preprocess,
+        postprocess=postprocess,
+        return_full_features=True,
+        flatten_enc_output=args.flatten_area_enc_output,
+        n_areas=args.n_areas,
+        frozen_areas=[True] * args.n_areas,
+        state_dict=state_dict,
+    )
+    readout_area = args.attention_readout_area % repl.n_areas
+    context_dim = _infer_context_dim(repl.areas[readout_area]["integrator"], args.area_ctx_dims[readout_area])
+    predictor_output_dim = _infer_predictor_output_dim(repl.areas[-1]["predictor"], context_dim)
+    head = ClassificationHead(input_dim=context_dim, num_classes=len(dataset.sprites))
+    first_shape = _infer_first_encoder_shape(repl.areas[0]["encoder"], output_size, 1 if args.grayscale else 3, device)
+    decoder = _make_decoder(args, predictor_output_dim, context_dim, first_shape)
+    model = HierarchicalARPLmodel(
+        hierarchical_repl=repl,
+        head=head,
+        decoder=decoder,
+        num_tasks=len(TASK_TO_ID),
+        freeze_repl=True,
+        eval_frozen=True,
+        decoder_input_dim=predictor_output_dim,
+        readout_area=readout_area,
+        use_task_embedding=args.attention_use_task_embedding,
+        use_prompt_embedding=args.attention_use_prompt_embedding,
     )
     return model.to(device)
 
@@ -303,13 +439,27 @@ def _validate_optimizer_scope(optimizer, trainable_named):
         raise RuntimeError("Optimizer parameter set does not exactly match trainable ARPL parameters.")
 
 
+def _eval_frozen_repl_modules(model):
+    if hasattr(model, "encoder_first"):
+        model.encoder_first.eval()
+        model.encoder_tail.eval()
+        model.integrator.eval()
+        model.predictor.eval()
+        return
+    if hasattr(model, "areas"):
+        for area in model.areas:
+            area["encoder"].eval()
+            area["integrator"].eval()
+            area["predictor"].eval()
+
+
 def train(args, device):
     if args.torch_num_threads > 0:
         torch.set_num_threads(args.torch_num_threads)
 
     dataset = _prepare_attention_dataset(args)
     loader = DataLoader(dataset, **_dataloader_kwargs(args, device))
-    model = _prepare_arpl_model(args, dataset, device)
+    model = _prepare_harpl_model(args, dataset, device) if args.hierarchical else _prepare_arpl_model(args, dataset, device)
     trainable_named, frozen_named = _validate_trainable_scope(model)
     optimizer = _prepare_optimizer(args, model)
     _validate_optimizer_scope(optimizer, trainable_named)
@@ -332,10 +482,7 @@ def train(args, device):
 
     for epoch in range(args.epochs):
         model.train()
-        model.encoder_first.eval()
-        model.encoder_tail.eval()
-        model.integrator.eval()
-        model.predictor.eval()
+        _eval_frozen_repl_modules(model)
 
         total_loss = 0.0
         total_correct = 0
@@ -348,11 +495,22 @@ def train(args, device):
             data_time = time.perf_counter() - last_batch_end
             step_start = time.perf_counter()
             video = video.to(device, non_blocking=non_blocking)
-            task_info = _move_labels(task_info, device, non_blocking=non_blocking)
+            labels = _move_labels(task_info, device, non_blocking=non_blocking)
+            task_info_tensor = _task_info(labels)
 
-            logits = model((video, task_info), return_logits_only=True)
-            targets, mask = _make_attention_targets(task_info, logits.size(1), args.cue_frames)
-            loss = criterion(logits[mask], targets[mask])
+            if args.attention_mask_loss_weight > 0.0:
+                logits, attention = model((video, task_info_tensor), return_logits_only=True, return_attention=True)
+            else:
+                logits = model((video, task_info_tensor), return_logits_only=True)
+                attention = None
+            targets, mask = _make_attention_targets(task_info_tensor, logits.size(1), args.cue_frames)
+            cls_loss = criterion(logits[mask], targets[mask])
+            if args.attention_mask_loss_weight > 0.0:
+                mask_loss, _ = _attention_mask_loss(attention, labels, mask, args.attention_mask_positive_weight)
+                loss = cls_loss + args.attention_mask_loss_weight * mask_loss
+            else:
+                mask_loss = torch.zeros((), dtype=cls_loss.dtype, device=cls_loss.device)
+                loss = cls_loss
 
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
@@ -384,6 +542,8 @@ def train(args, device):
                 if not args.nolog:
                     log_variable(epoch + 1, "Attention/epoch", commit=False)
                     log_variable(loss_value, "Attention/train_loss_step", commit=False)
+                    log_variable(cls_loss.item(), "Attention/train_cls_loss_step", commit=False)
+                    log_variable(mask_loss.item(), "Attention/train_mask_loss_step", commit=False)
                     log_variable(batch_acc, "Attention/train_acc_step", commit=False)
                     log_variable(count, "Attention/supervised_items_step", commit=False)
                     log_variable(data_time, "Attention/timing_data_sec", commit=False)
@@ -396,7 +556,7 @@ def train(args, device):
                     log_variable(global_step, "Attention/global_step", commit=True)
 
             stop_after_batch = args.max_batches and batch_idx + 1 >= args.max_batches
-            del video, task_info, logits, targets, mask, loss
+            del video, task_info, labels, task_info_tensor, logits, targets, mask, loss, cls_loss, mask_loss, attention
             global_step += 1
             last_batch_end = time.perf_counter()
             if stop_after_batch:
@@ -448,16 +608,22 @@ def train(args, device):
 
 def build_parser():
     parser = argparse.ArgumentParser(
+        conflict_handler="resolve",
         description="Train ARPL attention decoder/head on MovingAnimalAttentionDataset."
     )
     add_reproducibility_args(parser)
     add_model_args(parser)
+    add_greedy_model_args(parser)
     add_optimization_args(parser)
 
     parser.add_argument("--model_path", type=str, required=True, help="Pretrained RePL checkpoint.")
+    parser.add_argument("--hierarchical", action="store_true", help="Use the full hRPL hierarchy.")
+    parser.add_argument("--attention_dataset", choices=["animals", "mnist_sprites"], default="animals")
     parser.add_argument("--data_input_dir", type=str, default="datasets")
     parser.add_argument("--sprite_img_dir", type=str, default="animals")
     parser.add_argument("--spritevid_max_sprites", type=int, default=8)
+    parser.add_argument("--spritevid_min_scale", type=float, default=0.5)
+    parser.add_argument("--spritevid_max_scale", type=float, default=1.0)
     parser.add_argument("--spritevid_output_size", type=int, nargs="+", default=[64])
     parser.add_argument("--spritevid_noise_type", choices=["gaussian", "salt_pepper", "none"], default="gaussian")
     parser.add_argument("--spritevid_noise_level", type=float, default=0.1)
@@ -484,6 +650,12 @@ def build_parser():
     parser.add_argument("--cue_frames", type=int, default=5)
     parser.add_argument("--attention_hidden_dim", type=int, default=None)
     parser.add_argument("--attention_decoder_layers", type=int, default=1)
+    parser.add_argument("--attention_decoder_kind", choices=["channel", "spatial"], default="channel")
+    parser.add_argument("--attention_mask_loss_weight", type=float, default=0.0)
+    parser.add_argument("--attention_mask_positive_weight", type=float, default=1.0)
+    parser.add_argument("--attention_readout_area", type=int, default=-1)
+    parser.add_argument("--attention_use_task_embedding", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--attention_use_prompt_embedding", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--max_batches", type=int, default=0, help="Stop each epoch after this many batches; 0 means full epoch.")
     parser.add_argument("--freeze_tolerance", type=float, default=0.0)
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints")

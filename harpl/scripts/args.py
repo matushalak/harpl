@@ -111,6 +111,7 @@ def add_data_args(parser):
     parser.add_argument("--spritevid_occlude_n_frames", type=int, default=0, help="number of frames to occlude in the SpriteVideo dataset")
     parser.add_argument("--spritevid_min_scale", type=float, default=0.2, help="minimum SpriteVideo object scale")
     parser.add_argument("--spritevid_max_scale", type=float, default=1.0, help="maximum SpriteVideo object scale")
+    parser.add_argument("--spritevid_normalization_samples", type=int, default=10000, help="number of SpriteVideo samples used to estimate input normalization")
     parser.add_argument("--spritevid_device", type=str, default="cpu", help="device used to render SpriteVideo batches: cpu, cuda, cuda:0, or auto")
     parser.add_argument("--num_sequences", type=int, default=10000, help="number of sequences for MNIST dataset")
     parser.add_argument("--inter_trial_interval", type=int, default=0, help="inter-trial interval (only for MNIST dataset)")

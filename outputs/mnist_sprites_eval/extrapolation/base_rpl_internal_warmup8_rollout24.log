@@ -1,0 +1,4 @@
+Computing normalization values using 512 samples...
+Computed normalization values - mean: tensor([0.5041, 0.5023, 0.5013]), std: tensor([0.1205, 0.1100, 0.1186])
+internal extrapolation:   0%|          | 0/16 [00:00<?, ?it/s]internal extrapolation:   6%|▋         | 1/16 [00:00<00:14,  1.02it/s]internal extrapolation:  12%|█▎        | 2/16 [00:01<00:12,  1.11it/s]internal extrapolation:  19%|█▉        | 3/16 [00:02<00:11,  1.12it/s]internal extrapolation:  19%|█▉        | 3/16 [00:03<00:15,  1.19s/it]
+Wrote extrapolation outputs to outputs/mnist_sprites_eval/extrapolation

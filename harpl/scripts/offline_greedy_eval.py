@@ -76,6 +76,9 @@ def greedy_offline_eval(args, model, num_classes, model_output_idx, seq_len, dev
             spritevid_grid_enabled=args.spritevid_grid_enabled,
             spritevid_frozen_grid=args.spritevid_frozen_grid,
             spritevid_occlude_n_frames=args.spritevid_occlude_n_frames,
+            spritevid_min_scale=args.spritevid_min_scale,
+            spritevid_max_scale=args.spritevid_max_scale,
+            spritevid_normalization_samples=args.spritevid_normalization_samples,
             spritevid_device=args.spritevid_device,
             num_sequences=args.num_sequences,
         )

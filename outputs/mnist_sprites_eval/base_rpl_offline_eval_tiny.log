@@ -1,0 +1,51 @@
+num_sequences is only used for MNIST datasets. For other datasets, it will be ignored.
+pred_loss_type and pred_target are only used for Pred loss. For other losses, they will be ignored.
+Computing normalization values using 16 samples...
+Computed normalization values - mean: tensor([0.5033, 0.5057, 0.4977]), std: tensor([0.1207, 0.1074, 0.1146])
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:00<00:01,  2.01it/s] 50%|█████     | 2/4 [00:00<00:00,  3.18it/s] 75%|███████▌  | 3/4 [00:00<00:00,  3.94it/s]100%|██████████| 4/4 [00:01<00:00,  4.43it/s]100%|██████████| 4/4 [00:01<00:00,  3.82it/s]
+Using sklearn for regression tasks
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:00<00:01,  2.17it/s] 50%|█████     | 2/4 [00:00<00:00,  3.09it/s] 75%|███████▌  | 3/4 [00:00<00:00,  3.56it/s]100%|██████████| 4/4 [00:01<00:00,  3.83it/s]100%|██████████| 4/4 [00:01<00:00,  3.48it/s]
+Epoch: 0
+Val. acc. (digit): 0.0469
+Val. acc. (color): 0.0938
+Val. acc. (rotation_direction): 0.4062
+Val. acc. (x-direction): 0.3118
+Val. acc. (y-direction): 0.3430
+Val. acc. (z-direction): 0.3857
+Val. acc. (x-position (discr)): 0.0254
+Val. acc. (y-position (discr)): 0.0352
+Val. acc. (z-position (discr)): 0.0452
+Val. acc. (orientation): 0.0271
+Val. R2 (speed): -9.0113
+Val. R2 (rotation_speed): -3.2735
+Val. R2 (x-position): -0.8728
+Val. R2 (y-position): -0.7307
+Val. R2 (z-position): -5.9388
+Val. R2 (x-velocity): -0.5356
+Val. R2 (y-velocity): -2.4965
+Val. R2 (z-velocity): -1.3851
+Val. R2 (sin): -0.6720
+Val. R2 (cos): -0.8533
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:00<00:01,  2.59it/s] 50%|█████     | 2/4 [00:00<00:00,  3.32it/s] 75%|███████▌  | 3/4 [00:00<00:00,  3.70it/s]100%|██████████| 4/4 [00:01<00:00,  3.89it/s]100%|██████████| 4/4 [00:01<00:00,  3.64it/s]
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:00<00:00,  4.41it/s] 50%|█████     | 2/4 [00:00<00:00,  4.40it/s] 75%|███████▌  | 3/4 [00:00<00:00,  4.39it/s]100%|██████████| 4/4 [00:00<00:00,  4.34it/s]100%|██████████| 4/4 [00:00<00:00,  4.36it/s]
+Epoch: 1
+Val. acc. (digit): 0.0469
+Val. acc. (color): 0.1484
+Val. acc. (rotation_direction): 0.7031
+Val. acc. (x-direction): 0.6528
+Val. acc. (y-direction): 0.7195
+Val. acc. (z-direction): 0.4434
+Val. acc. (x-position (discr)): 0.0833
+Val. acc. (y-position (discr)): 0.0906
+Val. acc. (z-position (discr)): 0.0828
+Val. acc. (orientation): 0.0293
+Val. R2 (speed): -8.8662
+Val. R2 (rotation_speed): -3.2552
+Val. R2 (x-position): 0.2444
+Val. R2 (y-position): 0.1940
+Val. R2 (z-position): -4.6845
+Val. R2 (x-velocity): 0.3813
+Val. R2 (y-velocity): -0.3621
+Val. R2 (z-velocity): -0.4433
+Val. R2 (sin): -0.4274
+Val. R2 (cos): -0.3977

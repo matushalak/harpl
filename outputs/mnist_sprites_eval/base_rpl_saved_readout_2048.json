@@ -1,0 +1,362 @@
+[
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 1.0216648578643799,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 3.3956627021325403e-07,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.2189948856830597,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.6611328125,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 1.0,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.95703125,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.21993021667003632,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.22181405127048492,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 1.1314719915390015,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.1547592878341675,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.1452698707580566,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 5.9363908767700195,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.0518789291381836,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.928802490234375,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.9302978515625,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.799835205078125,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.5424346923828125,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.5536041259765625,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.1154327392578125,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.097564697265625,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.2269536554813385,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 14.524322509765625,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.955037746578455,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": 0.8062564469873905,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.002949562855064869,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.0028253858909010887,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.030805589631199837,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.05350901931524277,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.05401678383350372,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.18541346490383148,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.48169323801994324,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.48339521884918213,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.9875967986881733,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9879282265901566,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.6286969110369682,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.838880755007267,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.8399291224777699,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.4470720440149307,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": 0.03492281213402748,
+    "model": "RPL",
+    "area": ""
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": 0.032777488231658936,
+    "model": "RPL",
+    "area": ""
+  }
+]

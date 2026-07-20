@@ -1,0 +1,128 @@
+Computing normalization values using 512 samples...
+Computed normalization values - mean: tensor([0.5041, 0.5023, 0.5013]), std: tensor([0.1205, 0.1100, 0.1186])
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:20,  1.34s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:16,  1.17s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:14,  1.11s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:13,  1.09s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:11,  1.08s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:10,  1.07s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:09,  1.07s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.07s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.06s/it]evaluate:  62%|██████▎   | 10/16 [00:10<00:06,  1.07s/it]evaluate:  69%|██████▉   | 11/16 [00:11<00:05,  1.07s/it]evaluate:  75%|███████▌  | 12/16 [00:12<00:04,  1.07s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.07s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.07s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.07s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.08s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.08s/it]
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:16,  1.08s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:15,  1.08s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:13,  1.07s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:12,  1.07s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:11,  1.08s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:10,  1.08s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:09,  1.10s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.10s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.10s/it]evaluate:  62%|██████▎   | 10/16 [00:10<00:06,  1.10s/it]evaluate:  69%|██████▉   | 11/16 [00:12<00:05,  1.10s/it]evaluate:  75%|███████▌  | 12/16 [00:13<00:04,  1.12s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.12s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.11s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.12s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.10s/it]
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:16,  1.10s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:15,  1.11s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:14,  1.10s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:13,  1.09s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:12,  1.10s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:10,  1.10s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:09,  1.10s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.09s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.09s/it]evaluate:  62%|██████▎   | 10/16 [00:10<00:06,  1.09s/it]evaluate:  69%|██████▉   | 11/16 [00:12<00:05,  1.09s/it]evaluate:  75%|███████▌  | 12/16 [00:13<00:04,  1.10s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.11s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.10s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.10s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.10s/it]
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:16,  1.10s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:15,  1.10s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:14,  1.10s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:13,  1.10s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:12,  1.11s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:11,  1.11s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:09,  1.11s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.11s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.11s/it]evaluate:  62%|██████▎   | 10/16 [00:11<00:06,  1.11s/it]evaluate:  69%|██████▉   | 11/16 [00:12<00:05,  1.11s/it]evaluate:  75%|███████▌  | 12/16 [00:13<00:04,  1.11s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.12s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.11s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.12s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:16,  1.11s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:15,  1.12s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:14,  1.12s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:13,  1.10s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:12,  1.10s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:11,  1.11s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:10,  1.11s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.11s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.11s/it]evaluate:  62%|██████▎   | 10/16 [00:11<00:06,  1.10s/it]evaluate:  69%|██████▉   | 11/16 [00:12<00:05,  1.10s/it]evaluate:  75%|███████▌  | 12/16 [00:13<00:04,  1.11s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.11s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.10s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]
+evaluate:   0%|          | 0/16 [00:00<?, ?it/s]evaluate:   6%|▋         | 1/16 [00:01<00:16,  1.12s/it]evaluate:  12%|█▎        | 2/16 [00:02<00:15,  1.11s/it]evaluate:  19%|█▉        | 3/16 [00:03<00:14,  1.11s/it]evaluate:  25%|██▌       | 4/16 [00:04<00:13,  1.11s/it]evaluate:  31%|███▏      | 5/16 [00:05<00:12,  1.11s/it]evaluate:  38%|███▊      | 6/16 [00:06<00:11,  1.11s/it]evaluate:  44%|████▍     | 7/16 [00:07<00:09,  1.11s/it]evaluate:  50%|█████     | 8/16 [00:08<00:08,  1.11s/it]evaluate:  56%|█████▋    | 9/16 [00:09<00:07,  1.11s/it]evaluate:  62%|██████▎   | 10/16 [00:11<00:06,  1.11s/it]evaluate:  69%|██████▉   | 11/16 [00:12<00:05,  1.11s/it]evaluate:  75%|███████▌  | 12/16 [00:13<00:04,  1.12s/it]evaluate:  81%|████████▏ | 13/16 [00:14<00:03,  1.12s/it]evaluate:  88%|████████▊ | 14/16 [00:15<00:02,  1.11s/it]evaluate:  94%|█████████▍| 15/16 [00:16<00:01,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]evaluate: 100%|██████████| 16/16 [00:17<00:00,  1.11s/it]
+hRPL area=0 sequence digit accuracy=0.1992
+hRPL area=0 sequence color accuracy=1.0000
+hRPL area=0 sequence rotation_direction accuracy=0.5249
+hRPL area=0 frame x-direction accuracy=0.8485
+hRPL area=0 frame y-direction accuracy=0.8433
+hRPL area=0 frame z-direction accuracy=0.7204
+hRPL area=0 frame x-position (discr) accuracy=0.3604
+hRPL area=0 frame y-position (discr) accuracy=0.3607
+hRPL area=0 frame z-position (discr) accuracy=0.1023
+hRPL area=0 frame orientation accuracy=0.0422
+hRPL area=0 sequence speed r2=0.8269
+hRPL area=0 sequence rotation_speed r2=-0.0597
+hRPL area=0 frame x-position r2=0.8949
+hRPL area=0 frame y-position r2=0.8868
+hRPL area=0 frame z-position r2=0.3435
+hRPL area=0 frame x-velocity r2=0.5445
+hRPL area=0 frame y-velocity r2=0.5364
+hRPL area=0 frame z-velocity r2=0.2314
+hRPL area=0 frame sin r2=-0.0088
+hRPL area=0 frame cos r2=-0.0060
+hRPL area=1 sequence digit accuracy=0.3062
+hRPL area=1 sequence color accuracy=0.9995
+hRPL area=1 sequence rotation_direction accuracy=0.5654
+hRPL area=1 frame x-direction accuracy=0.8886
+hRPL area=1 frame y-direction accuracy=0.8869
+hRPL area=1 frame z-direction accuracy=0.7262
+hRPL area=1 frame x-position (discr) accuracy=0.4364
+hRPL area=1 frame y-position (discr) accuracy=0.4436
+hRPL area=1 frame z-position (discr) accuracy=0.0958
+hRPL area=1 frame orientation accuracy=0.0636
+hRPL area=1 sequence speed r2=0.9109
+hRPL area=1 sequence rotation_speed r2=-0.0479
+hRPL area=1 frame x-position r2=0.9336
+hRPL area=1 frame y-position r2=0.9385
+hRPL area=1 frame z-position r2=0.4216
+hRPL area=1 frame x-velocity r2=0.6775
+hRPL area=1 frame y-velocity r2=0.6842
+hRPL area=1 frame z-velocity r2=0.2025
+hRPL area=1 frame sin r2=-0.0050
+hRPL area=1 frame cos r2=-0.0046
+hRPL area=2 sequence digit accuracy=0.4346
+hRPL area=2 sequence color accuracy=1.0000
+hRPL area=2 sequence rotation_direction accuracy=0.7314
+hRPL area=2 frame x-direction accuracy=0.9114
+hRPL area=2 frame y-direction accuracy=0.9125
+hRPL area=2 frame z-direction accuracy=0.7330
+hRPL area=2 frame x-position (discr) accuracy=0.4729
+hRPL area=2 frame y-position (discr) accuracy=0.4737
+hRPL area=2 frame z-position (discr) accuracy=0.0977
+hRPL area=2 frame orientation accuracy=0.0730
+hRPL area=2 sequence speed r2=0.9333
+hRPL area=2 sequence rotation_speed r2=0.1493
+hRPL area=2 frame x-position r2=0.9645
+hRPL area=2 frame y-position r2=0.9583
+hRPL area=2 frame z-position r2=0.5151
+hRPL area=2 frame x-velocity r2=0.7863
+hRPL area=2 frame y-velocity r2=0.7881
+hRPL area=2 frame z-velocity r2=0.1735
+hRPL area=2 frame sin r2=-0.0032
+hRPL area=2 frame cos r2=0.0005
+hRPL area=3 sequence digit accuracy=0.4897
+hRPL area=3 sequence color accuracy=0.9995
+hRPL area=3 sequence rotation_direction accuracy=0.9321
+hRPL area=3 frame x-direction accuracy=0.9174
+hRPL area=3 frame y-direction accuracy=0.9180
+hRPL area=3 frame z-direction accuracy=0.7334
+hRPL area=3 frame x-position (discr) accuracy=0.4807
+hRPL area=3 frame y-position (discr) accuracy=0.4809
+hRPL area=3 frame z-position (discr) accuracy=0.1112
+hRPL area=3 frame orientation accuracy=0.0825
+hRPL area=3 sequence speed r2=0.9315
+hRPL area=3 sequence rotation_speed r2=0.6103
+hRPL area=3 frame x-position r2=0.9806
+hRPL area=3 frame y-position r2=0.9796
+hRPL area=3 frame z-position r2=0.5562
+hRPL area=3 frame x-velocity r2=0.8044
+hRPL area=3 frame y-velocity r2=0.8074
+hRPL area=3 frame z-velocity r2=0.2033
+hRPL area=3 frame sin r2=0.0041
+hRPL area=3 frame cos r2=0.0048
+hRPL area=4 sequence digit accuracy=0.5361
+hRPL area=4 sequence color accuracy=0.9995
+hRPL area=4 sequence rotation_direction accuracy=0.9551
+hRPL area=4 frame x-direction accuracy=0.9220
+hRPL area=4 frame y-direction accuracy=0.9191
+hRPL area=4 frame z-direction accuracy=0.7706
+hRPL area=4 frame x-position (discr) accuracy=0.4845
+hRPL area=4 frame y-position (discr) accuracy=0.4815
+hRPL area=4 frame z-position (discr) accuracy=0.1180
+hRPL area=4 frame orientation accuracy=0.0863
+hRPL area=4 sequence speed r2=0.9350
+hRPL area=4 sequence rotation_speed r2=0.7686
+hRPL area=4 frame x-position r2=0.9826
+hRPL area=4 frame y-position r2=0.9829
+hRPL area=4 frame z-position r2=0.5711
+hRPL area=4 frame x-velocity r2=0.8189
+hRPL area=4 frame y-velocity r2=0.8162
+hRPL area=4 frame z-velocity r2=0.2718
+hRPL area=4 frame sin r2=0.0113
+hRPL area=4 frame cos r2=0.0114
+hRPL area=5 sequence digit accuracy=0.5742
+hRPL area=5 sequence color accuracy=0.9985
+hRPL area=5 sequence rotation_direction accuracy=0.9595
+hRPL area=5 frame x-direction accuracy=0.9211
+hRPL area=5 frame y-direction accuracy=0.9164
+hRPL area=5 frame z-direction accuracy=0.7324
+hRPL area=5 frame x-position (discr) accuracy=0.4886
+hRPL area=5 frame y-position (discr) accuracy=0.4906
+hRPL area=5 frame z-position (discr) accuracy=0.1134
+hRPL area=5 frame orientation accuracy=0.0884
+hRPL area=5 sequence speed r2=0.9366
+hRPL area=5 sequence rotation_speed r2=0.8054
+hRPL area=5 frame x-position r2=0.9835
+hRPL area=5 frame y-position r2=0.9837
+hRPL area=5 frame z-position r2=0.5292
+hRPL area=5 frame x-velocity r2=0.8129
+hRPL area=5 frame y-velocity r2=0.8179
+hRPL area=5 frame z-velocity r2=0.0613
+hRPL area=5 frame sin r2=0.0155
+hRPL area=5 frame cos r2=0.0174

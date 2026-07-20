@@ -87,6 +87,9 @@ class SpriteVideoDataset(Dataset):
         # Scale range
         min_scale=0.2,
         max_scale=1.0,
+
+        # Normalization
+        normalization_samples=10000,
         
         # Normalization parameters
         mean=None,  # Pre-computed mean (for test split)
@@ -127,6 +130,7 @@ class SpriteVideoDataset(Dataset):
             raise ValueError("Scale bounds must satisfy 0 < min_scale <= max_scale.")
         self.min_scale = min_scale
         self.max_scale = max_scale
+        self.normalization_samples = normalization_samples
         
         # Set random seed for reproducibility
         self.rng = np.random.RandomState(seed)
@@ -172,7 +176,7 @@ class SpriteVideoDataset(Dataset):
         # Normalization
         if split == "train":
             self.mean, self.std = self._compute_normalization(
-                samples=10000, 
+                samples=self.normalization_samples,
                 batch_size=100
             )
             if self.grayscale:

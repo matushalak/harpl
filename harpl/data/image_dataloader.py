@@ -157,6 +157,7 @@ class SpriteVideoDataLoader(ImageDataLoader):
         occlude_n_frames=0,
         min_scale=0.2,
         max_scale=1.0,
+        normalization_samples=10000,
         device="cpu",
     ):
         super().__init__(
@@ -185,6 +186,7 @@ class SpriteVideoDataLoader(ImageDataLoader):
             occlude_n_frames=occlude_n_frames,
             min_scale=min_scale,
             max_scale=max_scale,
+            normalization_samples=normalization_samples,
             device=device,
         )
         self.exclude_latent_regions = exclude_latent_regions

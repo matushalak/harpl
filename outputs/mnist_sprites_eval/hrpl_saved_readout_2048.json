@@ -1,0 +1,2162 @@
+[
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 2.472005844116211,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.0003487151407171041,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.7143757939338684,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.19921875,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 1.0,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.52490234375,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.34079596400260925,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.3511589467525482,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 0.599668025970459,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.672655463218689,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.6645479202270508,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 3.5373036861419678,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.543647289276123,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.8485107421875,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.84326171875,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.720367431640625,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.3603668212890625,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.3607025146484375,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.1022796630859375,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.0421905517578125,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.8699082732200623,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 78.947998046875,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.82689493522048,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": -0.05974173545837402,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.024987954646348953,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.02651592157781124,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.05448400601744652,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.15132874250411987,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.1564997136592865,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.25749436020851135,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.5034899711608887,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.5027981996536255,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.8949094228446484,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.8867801278829575,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.3435031585395336,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.5444885045289993,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.5364276133477688,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.23141614720225334,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": -0.008762568235397339,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": -0.0060180313885211945,
+    "model": "hRPL",
+    "area": 0
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 2.107537269592285,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.0007206833106465638,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.6963526010513306,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.30615234375,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 0.99951171875,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.5654296875,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.26388704776763916,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.2675832509994507,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 0.725361704826355,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.4643927812576294,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.4363505840301514,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 3.9769763946533203,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.3338494300842285,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.8885650634765625,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.8869476318359375,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.7261810302734375,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.436370849609375,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4436187744140625,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.0958099365234375,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.0635528564453125,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.4501989483833313,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 78.1501693725586,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.9109266623854637,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": -0.04793258011341095,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.015781400725245476,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.014406263828277588,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.04799456149339676,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.10702960193157196,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.10664904117584229,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.2673843204975128,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.5016070604324341,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.5020870566368103,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.9336281158030033,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9384849593043327,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.4216184429824352,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.6774872839450836,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.68421595916152,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.20246433839201927,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": -0.004968389868736267,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": -0.004575792700052261,
+    "model": "hRPL",
+    "area": 1
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 1.729032278060913,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.0006414843373931944,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.5330977439880371,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.4345703125,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 1.0,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.7314453125,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.21808099746704102,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.2152918130159378,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 0.8815346956253052,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.3598355054855347,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.3628431558609009,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 4.232845783233643,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.2333908081054688,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.911407470703125,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.912506103515625,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.7330322265625,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.472869873046875,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4737396240234375,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.09771728515625,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.0729827880859375,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.3373604714870453,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 63.35492706298828,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.9333077669143677,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": 0.14926772192120552,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.00843431893736124,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.009752996265888214,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.04023418575525284,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.07095201313495636,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.07151518762111664,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.2775112986564636,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.5007320642471313,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.4995283782482147,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.9645242914557457,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9583280421793461,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.5150727704167366,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.7862796224653721,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.7881361544132233,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.17346127703785896,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": -0.0032481662929058075,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": 0.0005448088049888611,
+    "model": "hRPL",
+    "area": 2
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 1.5826510190963745,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.0018588387174531817,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.2143288552761078,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.48974609375,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 0.99951171875,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.93212890625,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.2158423662185669,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.2232261598110199,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 1.1167330741882324,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.3221676349639893,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.3135838508605957,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 4.3090620040893555,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.1756160259246826,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.917388916015625,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.9179534912109375,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.7333831787109375,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4806671142578125,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4808502197265625,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.1112060546875,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.0825347900390625,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.34606727957725525,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 29.130863189697266,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.9314711801707745,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": 0.6102549470961094,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.004608469549566507,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.0047727301716804504,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.03683158755302429,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.06498756259679794,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.0650361180305481,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.2672003209590912,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.49706587195396423,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.49739915132522583,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.9806221015751362,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9796154387295246,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.5562008507549763,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.8044012188911438,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.8073942922055721,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.20329442992806435,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": 0.004097562283277512,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": 0.0047766901552677155,
+    "model": "hRPL",
+    "area": 3
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 1.3935976028442383,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.002026133704930544,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.26489391922950745,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.5361328125,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 0.99951171875,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.955078125,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.21239899098873138,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.22246044874191284,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 0.9842619895935059,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.300180435180664,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.319385290145874,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 4.362024784088135,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.136441707611084,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.9220428466796875,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.9191436767578125,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.7705535888671875,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4845123291015625,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4815216064453125,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.1179656982421875,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.086334228515625,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.32691776752471924,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 17.299880981445312,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.9350458979606628,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": 0.7686112485826015,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.00413111736997962,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.003992532379925251,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.035588089376688004,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.06008560210466385,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.06205229461193085,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.24415475130081177,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.4934951066970825,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.49411094188690186,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.982631005346775,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9829436540603638,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.5711225420236588,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.8188880532979965,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.8161727301776409,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.27178747579455376,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": 0.011257670819759369,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": 0.011356253176927567,
+    "model": "hRPL",
+    "area": 4
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "classification_loss",
+    "value": 1.319593906402588,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "classification_loss",
+    "value": 0.004884075373411179,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "classification_loss",
+    "value": 0.2534971535205841,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "digit",
+    "metric": "accuracy",
+    "value": 0.57421875,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "color",
+    "metric": "accuracy",
+    "value": 0.99853515625,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_direction",
+    "metric": "accuracy",
+    "value": 0.95947265625,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "classification_loss",
+    "value": 0.21520651876926422,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "classification_loss",
+    "value": 0.2254573553800583,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "classification_loss",
+    "value": 1.3335551023483276,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.287444829940796,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "classification_loss",
+    "value": 1.3000320196151733,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "classification_loss",
+    "value": 4.448802947998047,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "classification_loss",
+    "value": 3.103686571121216,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-direction",
+    "metric": "accuracy",
+    "value": 0.9210968017578125,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-direction",
+    "metric": "accuracy",
+    "value": 0.916412353515625,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-direction",
+    "metric": "accuracy",
+    "value": 0.732391357421875,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position (discr)",
+    "metric": "accuracy",
+    "value": 0.4886474609375,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position (discr)",
+    "metric": "accuracy",
+    "value": 0.490631103515625,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position (discr)",
+    "metric": "accuracy",
+    "value": 0.1133880615234375,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "orientation",
+    "metric": "accuracy",
+    "value": 0.088409423828125,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "regression_loss",
+    "value": 0.3197864294052124,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "regression_loss",
+    "value": 14.537801742553711,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "speed",
+    "metric": "r2",
+    "value": 0.9366239719092846,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "sequence",
+    "task": "rotation_speed",
+    "metric": "r2",
+    "value": 0.8054373972117901,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "regression_loss",
+    "value": 0.003917566034942865,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "regression_loss",
+    "value": 0.003807532135397196,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "regression_loss",
+    "value": 0.039062295109033585,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "regression_loss",
+    "value": 0.06213833764195442,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "regression_loss",
+    "value": 0.06149425357580185,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "regression_loss",
+    "value": 0.3149525821208954,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "regression_loss",
+    "value": 0.49138495326042175,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "regression_loss",
+    "value": 0.4910491108894348,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-position",
+    "metric": "r2",
+    "value": 0.9835296049714088,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-position",
+    "metric": "r2",
+    "value": 0.9837363511323929,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-position",
+    "metric": "r2",
+    "value": 0.5291992090642452,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "x-velocity",
+    "metric": "r2",
+    "value": 0.8128586299717426,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "y-velocity",
+    "metric": "r2",
+    "value": 0.8178648874163628,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "z-velocity",
+    "metric": "r2",
+    "value": 0.061306875199079514,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "sin",
+    "metric": "r2",
+    "value": 0.015457525849342346,
+    "model": "hRPL",
+    "area": 5
+  },
+  {
+    "split": "eval",
+    "group": "frame",
+    "task": "cos",
+    "metric": "r2",
+    "value": 0.01743997260928154,
+    "model": "hRPL",
+    "area": 5
+  }
+]

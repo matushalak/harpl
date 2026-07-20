@@ -1,0 +1,241 @@
+model,area,split,group,task,metric,value
+hRPL,0,eval,sequence,digit,classification_loss,2.472005844116211
+hRPL,0,eval,sequence,color,classification_loss,0.0003487151407171041
+hRPL,0,eval,sequence,rotation_direction,classification_loss,0.7143757939338684
+hRPL,0,eval,sequence,digit,accuracy,0.19921875
+hRPL,0,eval,sequence,color,accuracy,1.0
+hRPL,0,eval,sequence,rotation_direction,accuracy,0.52490234375
+hRPL,0,eval,frame,x-direction,classification_loss,0.34079596400260925
+hRPL,0,eval,frame,y-direction,classification_loss,0.3511589467525482
+hRPL,0,eval,frame,z-direction,classification_loss,0.599668025970459
+hRPL,0,eval,frame,x-position (discr),classification_loss,1.672655463218689
+hRPL,0,eval,frame,y-position (discr),classification_loss,1.6645479202270508
+hRPL,0,eval,frame,z-position (discr),classification_loss,3.5373036861419678
+hRPL,0,eval,frame,orientation,classification_loss,3.543647289276123
+hRPL,0,eval,frame,x-direction,accuracy,0.8485107421875
+hRPL,0,eval,frame,y-direction,accuracy,0.84326171875
+hRPL,0,eval,frame,z-direction,accuracy,0.720367431640625
+hRPL,0,eval,frame,x-position (discr),accuracy,0.3603668212890625
+hRPL,0,eval,frame,y-position (discr),accuracy,0.3607025146484375
+hRPL,0,eval,frame,z-position (discr),accuracy,0.1022796630859375
+hRPL,0,eval,frame,orientation,accuracy,0.0421905517578125
+hRPL,0,eval,sequence,speed,regression_loss,0.8699082732200623
+hRPL,0,eval,sequence,rotation_speed,regression_loss,78.947998046875
+hRPL,0,eval,sequence,speed,r2,0.82689493522048
+hRPL,0,eval,sequence,rotation_speed,r2,-0.05974173545837402
+hRPL,0,eval,frame,x-position,regression_loss,0.024987954646348953
+hRPL,0,eval,frame,y-position,regression_loss,0.02651592157781124
+hRPL,0,eval,frame,z-position,regression_loss,0.05448400601744652
+hRPL,0,eval,frame,x-velocity,regression_loss,0.15132874250411987
+hRPL,0,eval,frame,y-velocity,regression_loss,0.1564997136592865
+hRPL,0,eval,frame,z-velocity,regression_loss,0.25749436020851135
+hRPL,0,eval,frame,sin,regression_loss,0.5034899711608887
+hRPL,0,eval,frame,cos,regression_loss,0.5027981996536255
+hRPL,0,eval,frame,x-position,r2,0.8949094228446484
+hRPL,0,eval,frame,y-position,r2,0.8867801278829575
+hRPL,0,eval,frame,z-position,r2,0.3435031585395336
+hRPL,0,eval,frame,x-velocity,r2,0.5444885045289993
+hRPL,0,eval,frame,y-velocity,r2,0.5364276133477688
+hRPL,0,eval,frame,z-velocity,r2,0.23141614720225334
+hRPL,0,eval,frame,sin,r2,-0.008762568235397339
+hRPL,0,eval,frame,cos,r2,-0.0060180313885211945
+hRPL,1,eval,sequence,digit,classification_loss,2.107537269592285
+hRPL,1,eval,sequence,color,classification_loss,0.0007206833106465638
+hRPL,1,eval,sequence,rotation_direction,classification_loss,0.6963526010513306
+hRPL,1,eval,sequence,digit,accuracy,0.30615234375
+hRPL,1,eval,sequence,color,accuracy,0.99951171875
+hRPL,1,eval,sequence,rotation_direction,accuracy,0.5654296875
+hRPL,1,eval,frame,x-direction,classification_loss,0.26388704776763916
+hRPL,1,eval,frame,y-direction,classification_loss,0.2675832509994507
+hRPL,1,eval,frame,z-direction,classification_loss,0.725361704826355
+hRPL,1,eval,frame,x-position (discr),classification_loss,1.4643927812576294
+hRPL,1,eval,frame,y-position (discr),classification_loss,1.4363505840301514
+hRPL,1,eval,frame,z-position (discr),classification_loss,3.9769763946533203
+hRPL,1,eval,frame,orientation,classification_loss,3.3338494300842285
+hRPL,1,eval,frame,x-direction,accuracy,0.8885650634765625
+hRPL,1,eval,frame,y-direction,accuracy,0.8869476318359375
+hRPL,1,eval,frame,z-direction,accuracy,0.7261810302734375
+hRPL,1,eval,frame,x-position (discr),accuracy,0.436370849609375
+hRPL,1,eval,frame,y-position (discr),accuracy,0.4436187744140625
+hRPL,1,eval,frame,z-position (discr),accuracy,0.0958099365234375
+hRPL,1,eval,frame,orientation,accuracy,0.0635528564453125
+hRPL,1,eval,sequence,speed,regression_loss,0.4501989483833313
+hRPL,1,eval,sequence,rotation_speed,regression_loss,78.1501693725586
+hRPL,1,eval,sequence,speed,r2,0.9109266623854637
+hRPL,1,eval,sequence,rotation_speed,r2,-0.04793258011341095
+hRPL,1,eval,frame,x-position,regression_loss,0.015781400725245476
+hRPL,1,eval,frame,y-position,regression_loss,0.014406263828277588
+hRPL,1,eval,frame,z-position,regression_loss,0.04799456149339676
+hRPL,1,eval,frame,x-velocity,regression_loss,0.10702960193157196
+hRPL,1,eval,frame,y-velocity,regression_loss,0.10664904117584229
+hRPL,1,eval,frame,z-velocity,regression_loss,0.2673843204975128
+hRPL,1,eval,frame,sin,regression_loss,0.5016070604324341
+hRPL,1,eval,frame,cos,regression_loss,0.5020870566368103
+hRPL,1,eval,frame,x-position,r2,0.9336281158030033
+hRPL,1,eval,frame,y-position,r2,0.9384849593043327
+hRPL,1,eval,frame,z-position,r2,0.4216184429824352
+hRPL,1,eval,frame,x-velocity,r2,0.6774872839450836
+hRPL,1,eval,frame,y-velocity,r2,0.68421595916152
+hRPL,1,eval,frame,z-velocity,r2,0.20246433839201927
+hRPL,1,eval,frame,sin,r2,-0.004968389868736267
+hRPL,1,eval,frame,cos,r2,-0.004575792700052261
+hRPL,2,eval,sequence,digit,classification_loss,1.729032278060913
+hRPL,2,eval,sequence,color,classification_loss,0.0006414843373931944
+hRPL,2,eval,sequence,rotation_direction,classification_loss,0.5330977439880371
+hRPL,2,eval,sequence,digit,accuracy,0.4345703125
+hRPL,2,eval,sequence,color,accuracy,1.0
+hRPL,2,eval,sequence,rotation_direction,accuracy,0.7314453125
+hRPL,2,eval,frame,x-direction,classification_loss,0.21808099746704102
+hRPL,2,eval,frame,y-direction,classification_loss,0.2152918130159378
+hRPL,2,eval,frame,z-direction,classification_loss,0.8815346956253052
+hRPL,2,eval,frame,x-position (discr),classification_loss,1.3598355054855347
+hRPL,2,eval,frame,y-position (discr),classification_loss,1.3628431558609009
+hRPL,2,eval,frame,z-position (discr),classification_loss,4.232845783233643
+hRPL,2,eval,frame,orientation,classification_loss,3.2333908081054688
+hRPL,2,eval,frame,x-direction,accuracy,0.911407470703125
+hRPL,2,eval,frame,y-direction,accuracy,0.912506103515625
+hRPL,2,eval,frame,z-direction,accuracy,0.7330322265625
+hRPL,2,eval,frame,x-position (discr),accuracy,0.472869873046875
+hRPL,2,eval,frame,y-position (discr),accuracy,0.4737396240234375
+hRPL,2,eval,frame,z-position (discr),accuracy,0.09771728515625
+hRPL,2,eval,frame,orientation,accuracy,0.0729827880859375
+hRPL,2,eval,sequence,speed,regression_loss,0.3373604714870453
+hRPL,2,eval,sequence,rotation_speed,regression_loss,63.35492706298828
+hRPL,2,eval,sequence,speed,r2,0.9333077669143677
+hRPL,2,eval,sequence,rotation_speed,r2,0.14926772192120552
+hRPL,2,eval,frame,x-position,regression_loss,0.00843431893736124
+hRPL,2,eval,frame,y-position,regression_loss,0.009752996265888214
+hRPL,2,eval,frame,z-position,regression_loss,0.04023418575525284
+hRPL,2,eval,frame,x-velocity,regression_loss,0.07095201313495636
+hRPL,2,eval,frame,y-velocity,regression_loss,0.07151518762111664
+hRPL,2,eval,frame,z-velocity,regression_loss,0.2775112986564636
+hRPL,2,eval,frame,sin,regression_loss,0.5007320642471313
+hRPL,2,eval,frame,cos,regression_loss,0.4995283782482147
+hRPL,2,eval,frame,x-position,r2,0.9645242914557457
+hRPL,2,eval,frame,y-position,r2,0.9583280421793461
+hRPL,2,eval,frame,z-position,r2,0.5150727704167366
+hRPL,2,eval,frame,x-velocity,r2,0.7862796224653721
+hRPL,2,eval,frame,y-velocity,r2,0.7881361544132233
+hRPL,2,eval,frame,z-velocity,r2,0.17346127703785896
+hRPL,2,eval,frame,sin,r2,-0.0032481662929058075
+hRPL,2,eval,frame,cos,r2,0.0005448088049888611
+hRPL,3,eval,sequence,digit,classification_loss,1.5826510190963745
+hRPL,3,eval,sequence,color,classification_loss,0.0018588387174531817
+hRPL,3,eval,sequence,rotation_direction,classification_loss,0.2143288552761078
+hRPL,3,eval,sequence,digit,accuracy,0.48974609375
+hRPL,3,eval,sequence,color,accuracy,0.99951171875
+hRPL,3,eval,sequence,rotation_direction,accuracy,0.93212890625
+hRPL,3,eval,frame,x-direction,classification_loss,0.2158423662185669
+hRPL,3,eval,frame,y-direction,classification_loss,0.2232261598110199
+hRPL,3,eval,frame,z-direction,classification_loss,1.1167330741882324
+hRPL,3,eval,frame,x-position (discr),classification_loss,1.3221676349639893
+hRPL,3,eval,frame,y-position (discr),classification_loss,1.3135838508605957
+hRPL,3,eval,frame,z-position (discr),classification_loss,4.3090620040893555
+hRPL,3,eval,frame,orientation,classification_loss,3.1756160259246826
+hRPL,3,eval,frame,x-direction,accuracy,0.917388916015625
+hRPL,3,eval,frame,y-direction,accuracy,0.9179534912109375
+hRPL,3,eval,frame,z-direction,accuracy,0.7333831787109375
+hRPL,3,eval,frame,x-position (discr),accuracy,0.4806671142578125
+hRPL,3,eval,frame,y-position (discr),accuracy,0.4808502197265625
+hRPL,3,eval,frame,z-position (discr),accuracy,0.1112060546875
+hRPL,3,eval,frame,orientation,accuracy,0.0825347900390625
+hRPL,3,eval,sequence,speed,regression_loss,0.34606727957725525
+hRPL,3,eval,sequence,rotation_speed,regression_loss,29.130863189697266
+hRPL,3,eval,sequence,speed,r2,0.9314711801707745
+hRPL,3,eval,sequence,rotation_speed,r2,0.6102549470961094
+hRPL,3,eval,frame,x-position,regression_loss,0.004608469549566507
+hRPL,3,eval,frame,y-position,regression_loss,0.0047727301716804504
+hRPL,3,eval,frame,z-position,regression_loss,0.03683158755302429
+hRPL,3,eval,frame,x-velocity,regression_loss,0.06498756259679794
+hRPL,3,eval,frame,y-velocity,regression_loss,0.0650361180305481
+hRPL,3,eval,frame,z-velocity,regression_loss,0.2672003209590912
+hRPL,3,eval,frame,sin,regression_loss,0.49706587195396423
+hRPL,3,eval,frame,cos,regression_loss,0.49739915132522583
+hRPL,3,eval,frame,x-position,r2,0.9806221015751362
+hRPL,3,eval,frame,y-position,r2,0.9796154387295246
+hRPL,3,eval,frame,z-position,r2,0.5562008507549763
+hRPL,3,eval,frame,x-velocity,r2,0.8044012188911438
+hRPL,3,eval,frame,y-velocity,r2,0.8073942922055721
+hRPL,3,eval,frame,z-velocity,r2,0.20329442992806435
+hRPL,3,eval,frame,sin,r2,0.004097562283277512
+hRPL,3,eval,frame,cos,r2,0.0047766901552677155
+hRPL,4,eval,sequence,digit,classification_loss,1.3935976028442383
+hRPL,4,eval,sequence,color,classification_loss,0.002026133704930544
+hRPL,4,eval,sequence,rotation_direction,classification_loss,0.26489391922950745
+hRPL,4,eval,sequence,digit,accuracy,0.5361328125
+hRPL,4,eval,sequence,color,accuracy,0.99951171875
+hRPL,4,eval,sequence,rotation_direction,accuracy,0.955078125
+hRPL,4,eval,frame,x-direction,classification_loss,0.21239899098873138
+hRPL,4,eval,frame,y-direction,classification_loss,0.22246044874191284
+hRPL,4,eval,frame,z-direction,classification_loss,0.9842619895935059
+hRPL,4,eval,frame,x-position (discr),classification_loss,1.300180435180664
+hRPL,4,eval,frame,y-position (discr),classification_loss,1.319385290145874
+hRPL,4,eval,frame,z-position (discr),classification_loss,4.362024784088135
+hRPL,4,eval,frame,orientation,classification_loss,3.136441707611084
+hRPL,4,eval,frame,x-direction,accuracy,0.9220428466796875
+hRPL,4,eval,frame,y-direction,accuracy,0.9191436767578125
+hRPL,4,eval,frame,z-direction,accuracy,0.7705535888671875
+hRPL,4,eval,frame,x-position (discr),accuracy,0.4845123291015625
+hRPL,4,eval,frame,y-position (discr),accuracy,0.4815216064453125
+hRPL,4,eval,frame,z-position (discr),accuracy,0.1179656982421875
+hRPL,4,eval,frame,orientation,accuracy,0.086334228515625
+hRPL,4,eval,sequence,speed,regression_loss,0.32691776752471924
+hRPL,4,eval,sequence,rotation_speed,regression_loss,17.299880981445312
+hRPL,4,eval,sequence,speed,r2,0.9350458979606628
+hRPL,4,eval,sequence,rotation_speed,r2,0.7686112485826015
+hRPL,4,eval,frame,x-position,regression_loss,0.00413111736997962
+hRPL,4,eval,frame,y-position,regression_loss,0.003992532379925251
+hRPL,4,eval,frame,z-position,regression_loss,0.035588089376688004
+hRPL,4,eval,frame,x-velocity,regression_loss,0.06008560210466385
+hRPL,4,eval,frame,y-velocity,regression_loss,0.06205229461193085
+hRPL,4,eval,frame,z-velocity,regression_loss,0.24415475130081177
+hRPL,4,eval,frame,sin,regression_loss,0.4934951066970825
+hRPL,4,eval,frame,cos,regression_loss,0.49411094188690186
+hRPL,4,eval,frame,x-position,r2,0.982631005346775
+hRPL,4,eval,frame,y-position,r2,0.9829436540603638
+hRPL,4,eval,frame,z-position,r2,0.5711225420236588
+hRPL,4,eval,frame,x-velocity,r2,0.8188880532979965
+hRPL,4,eval,frame,y-velocity,r2,0.8161727301776409
+hRPL,4,eval,frame,z-velocity,r2,0.27178747579455376
+hRPL,4,eval,frame,sin,r2,0.011257670819759369
+hRPL,4,eval,frame,cos,r2,0.011356253176927567
+hRPL,5,eval,sequence,digit,classification_loss,1.319593906402588
+hRPL,5,eval,sequence,color,classification_loss,0.004884075373411179
+hRPL,5,eval,sequence,rotation_direction,classification_loss,0.2534971535205841
+hRPL,5,eval,sequence,digit,accuracy,0.57421875
+hRPL,5,eval,sequence,color,accuracy,0.99853515625
+hRPL,5,eval,sequence,rotation_direction,accuracy,0.95947265625
+hRPL,5,eval,frame,x-direction,classification_loss,0.21520651876926422
+hRPL,5,eval,frame,y-direction,classification_loss,0.2254573553800583
+hRPL,5,eval,frame,z-direction,classification_loss,1.3335551023483276
+hRPL,5,eval,frame,x-position (discr),classification_loss,1.287444829940796
+hRPL,5,eval,frame,y-position (discr),classification_loss,1.3000320196151733
+hRPL,5,eval,frame,z-position (discr),classification_loss,4.448802947998047
+hRPL,5,eval,frame,orientation,classification_loss,3.103686571121216
+hRPL,5,eval,frame,x-direction,accuracy,0.9210968017578125
+hRPL,5,eval,frame,y-direction,accuracy,0.916412353515625
+hRPL,5,eval,frame,z-direction,accuracy,0.732391357421875
+hRPL,5,eval,frame,x-position (discr),accuracy,0.4886474609375
+hRPL,5,eval,frame,y-position (discr),accuracy,0.490631103515625
+hRPL,5,eval,frame,z-position (discr),accuracy,0.1133880615234375
+hRPL,5,eval,frame,orientation,accuracy,0.088409423828125
+hRPL,5,eval,sequence,speed,regression_loss,0.3197864294052124
+hRPL,5,eval,sequence,rotation_speed,regression_loss,14.537801742553711
+hRPL,5,eval,sequence,speed,r2,0.9366239719092846
+hRPL,5,eval,sequence,rotation_speed,r2,0.8054373972117901
+hRPL,5,eval,frame,x-position,regression_loss,0.003917566034942865
+hRPL,5,eval,frame,y-position,regression_loss,0.003807532135397196
+hRPL,5,eval,frame,z-position,regression_loss,0.039062295109033585
+hRPL,5,eval,frame,x-velocity,regression_loss,0.06213833764195442
+hRPL,5,eval,frame,y-velocity,regression_loss,0.06149425357580185
+hRPL,5,eval,frame,z-velocity,regression_loss,0.3149525821208954
+hRPL,5,eval,frame,sin,regression_loss,0.49138495326042175
+hRPL,5,eval,frame,cos,regression_loss,0.4910491108894348
+hRPL,5,eval,frame,x-position,r2,0.9835296049714088
+hRPL,5,eval,frame,y-position,r2,0.9837363511323929
+hRPL,5,eval,frame,z-position,r2,0.5291992090642452
+hRPL,5,eval,frame,x-velocity,r2,0.8128586299717426
+hRPL,5,eval,frame,y-velocity,r2,0.8178648874163628
+hRPL,5,eval,frame,z-velocity,r2,0.061306875199079514
+hRPL,5,eval,frame,sin,r2,0.015457525849342346
+hRPL,5,eval,frame,cos,r2,0.01743997260928154

@@ -134,6 +134,7 @@ def prepare_data(
         spritevid_occlude_n_frames=0,
         spritevid_min_scale=0.2,
         spritevid_max_scale=1.0,
+        spritevid_normalization_samples=10000,
         spritevid_device="cpu",
         num_sequences=10000,
         inter_trial_interval=0,
@@ -168,6 +169,7 @@ def prepare_data(
         spritevid_occlude_n_frames (int): The number of frames to occlude (only for sprite videos).
         spritevid_min_scale (float): Minimum object scale (only for sprite videos).
         spritevid_max_scale (float): Maximum object scale (only for sprite videos).
+        spritevid_normalization_samples (int): Number of samples used to estimate SpriteVideo input normalization.
         spritevid_device (str): The device used for SpriteVideo rendering.
         num_sequences (int): The number of sequences (only for MNIST, FashionMNIST).
         inter_trial_interval (int): The inter-trial interval (only for MNIST, FashionMNIST).
@@ -213,6 +215,7 @@ def prepare_data(
             occlude_n_frames=spritevid_occlude_n_frames,
             min_scale=spritevid_min_scale,
             max_scale=spritevid_max_scale,
+            normalization_samples=spritevid_normalization_samples,
             device=resolved_spritevid_device,
         )
         train_loader, train_sampler = dataloader.get_train(batch_size)
